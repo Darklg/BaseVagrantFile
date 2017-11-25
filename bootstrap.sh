@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.1.0
+# VagrantFile Bootstrap v 0.2.0
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg

@@ -5,13 +5,13 @@
 VAGRANTFILE_MYPROJECT_IP = "192.168.33.1"
 VAGRANTFILE_MYPROJECT_NAME = "mycoolproject"
 
-# Vagrantfile API/syntax version
+# Vagrantfile API/syntax version.
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # Every Vagrant virtual environment requires a box to build off of.
-  config.vm.box = "ubuntu/trusty64"
+  config.vm.box = "ubuntu/xenial64"
 
   # Create a private network, which allows host-only access to the machine using a specific IP.
   config.vm.network "private_network", ip: VAGRANTFILE_MYPROJECT_IP
@@ -21,6 +21,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.synced_folder "./", "/var/www/html", :mount_options => ["dmode=777,fmode=666"]
 
   # Define the bootstrap file: A (shell) script that runs after first setup of your box (= provisioning)
-  config.vm.provision :shell, path: "bootstrap.sh", :args => [VAGRANTFILE_MYPROJECT_NAME]
+  config.vm.provision :shell, path: "https://raw.githubusercontent.com/Darklg/BaseVagrantFile/master/bootstrap.sh", :args => [VAGRANTFILE_MYPROJECT_NAME]
+  # OR Local version for debug purposes
+  # config.vm.provision :shell, path: "bootstrap.sh", :args => [VAGRANTFILE_MYPROJECT_NAME]
 
 end
