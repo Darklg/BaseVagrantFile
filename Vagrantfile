@@ -1,6 +1,12 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+# VagrantFile Bootstrap v 0.3.0
+#
+# @author      Darklg <darklg.blog@gmail.com>
+# @copyright   Copyright (c) 2017 Darklg
+# @license     MIT
+
 # Project settings
 VAGRANTFILE_MYPROJECT_IP = "192.168.33.1"
 VAGRANTFILE_MYPROJECT_NAME = "mycoolproject"
@@ -24,5 +30,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision :shell, path: "https://raw.githubusercontent.com/Darklg/BaseVagrantFile/master/bootstrap.sh", :args => [VAGRANTFILE_MYPROJECT_NAME]
   # OR Local version for debug purposes
   # config.vm.provision :shell, path: "bootstrap.sh", :args => [VAGRANTFILE_MYPROJECT_NAME]
+
+  # Hostname
+  config.vm.hostname = VAGRANTFILE_MYPROJECT_NAME+'.dev'
+  config.hostmanager.enabled = true
+  config.hostmanager.manage_host = true
 
 end
