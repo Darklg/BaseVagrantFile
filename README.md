@@ -23,4 +23,5 @@ Install Vagrant hostmanager `vagrant plugin install vagrant-hostmanager`.
 - PHP 7.0.
 - MySQL.
 - Redis.
+- Mailcatcher.
 - git, curl.

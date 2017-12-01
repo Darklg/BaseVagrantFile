@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.3.0
+# VagrantFile Bootstrap v 0.4.0
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -27,7 +27,11 @@ sudo apt-get update
 sudo apt-get -y upgrade
 
 # Tools
-sudo apt-get install -y vim htop curl git
+sudo apt-get install -y vim htop curl git sendmail
+
+# Ruby
+sudo apt-get install -y build-essential libsqlite3-dev ruby-dev
+sudo gem install mailcatcher --no-rdoc --no-ri;
 
 ###################################
 ## PHP & Apache & MySQL
@@ -55,6 +59,18 @@ mysql -uroot -proot -e "CREATE DATABASE ${PROJECTNAME}";
 if [ -f "/var/www/html/database.sql" ]; then
     mysql -uroot -proot ${PROJECTNAME} < /var/www/html/database.sql;
 fi
+
+# Mailcatcher
+# - cron
+sudo echo "@reboot $(which mailcatcher) --ip=0.0.0.0" >> tmp_crontab
+crontab tmp_crontab
+rm tmp_crontab
+sudo update-rc.d cron defaults
+# - enable
+sudo phpenmod mailcatcher
+echo "sendmail_path = /usr/bin/env $(which catchmail)" | sudo tee --append /etc/php/7.0/apache2/php.ini
+# - start
+/usr/bin/env $(which mailcatcher) --ip=0.0.0.0
 
 ###################################
 ## Hosts
