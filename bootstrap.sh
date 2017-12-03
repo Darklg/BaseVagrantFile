@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.4.0
+# VagrantFile Bootstrap v 0.4.1
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -42,9 +42,10 @@ sudo debconf-set-selections <<< "mysql-server mysql-server/root_password passwor
 sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again password root"
 
 # Install
-sudo apt-get install -y apache2 git-core redis-server
+sudo apt-get install -y apache2
+sudo apt-get install -y git-core redis-server
 sudo apt-get install -y mysql-server
-sudo apt-get install -y php7.0-common php7.0-dev php7.0-json php7.0-opcache php7.0-cli libapache2-mod-php7.0 php7.0 php7.0-mysql php7.0-fpm php7.0-curl php7.0-gd php7.0-mcrypt php7.0-mbstring php7.0-bcmath php7.0-zip php7.0-xml
+sudo apt-get install -y php7.0-common php7.0-dev php7.0-json php7.0-opcache php7.0-cli libapache2-mod-php7.0 php7.0 php7.0-mysql php7.0-fpm php7.0-curl php7.0-gd php7.0-mcrypt php7.0-mbstring php7.0-bcmath php7.0-zip php7.0-xml php-memcached
 
 # Apache
 sudo a2enmod rewrite
@@ -52,6 +53,7 @@ sudo a2enmod rewrite
 # PHP
 sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php/7.0/apache2/php.ini
 sed -i "s/display_errors = .*/display_errors = On/" /etc/php/7.0/apache2/php.ini
+sudo phpenmod memcached
 
 # MySQL : Create user / Create db / Import db
 mysql -uroot -proot -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'root' WITH GRANT OPTION; FLUSH PRIVILEGES;"
@@ -100,6 +102,11 @@ service apache2 restart
 # Magetools
 cd /home/ubuntu && git clone https://github.com/Darklg/InteGentoMageTools.git;
 touch /home/ubuntu/.bash_aliases;
+
+# WP-Cli
+curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar;
+chmod +x wp-cli.phar
+sudo mv wp-cli.phar /usr/local/bin/wp
 
 # Aliases
 echo "alias magetools='. /home/ubuntu/InteGentoMageTools/magetools.sh';" >> /home/ubuntu/.bash_aliases;

@@ -4,8 +4,8 @@ A Basic VagrantFile for LAMP Projects like WordPress & Magento
 
 ## Requirements :
 
-Install Vagrant & Virtualbox.
-Install Vagrant hostmanager `vagrant plugin install vagrant-hostmanager`.
+- Install Vagrant & Virtualbox.
+- Install Vagrant hostmanager `vagrant plugin install vagrant-hostmanager`.
 
 ## How to use :
 
