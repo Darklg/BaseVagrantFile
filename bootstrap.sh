@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.4.1
+# VagrantFile Bootstrap v 0.4.2
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -70,7 +70,8 @@ rm tmp_crontab
 sudo update-rc.d cron defaults
 # - enable
 sudo phpenmod mailcatcher
-echo "sendmail_path = /usr/bin/env $(which catchmail)" | sudo tee --append /etc/php/7.0/apache2/php.ini
+echo "sendmail_from = mailcatcher@${PROJECTNAME}.dev" | sudo tee --append /etc/php/7.0/apache2/php.ini
+echo "sendmail_path = /usr/bin/env $(which catchmail) -f mailcatcher@${PROJECTNAME}.dev" | sudo tee --append /etc/php/7.0/apache2/php.ini
 # - start
 /usr/bin/env $(which mailcatcher) --ip=0.0.0.0
 
