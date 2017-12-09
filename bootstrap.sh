@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.4.2
+# VagrantFile Bootstrap v 0.5.0
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 # Project name
-PROJECTNAME="${1}";
+BVF_PROJECTNAME="${1}";
+BVF_PROJECTNDD="${2}";
 
 ###################################
 ## Install
@@ -55,12 +56,23 @@ sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php/7.0/apache2/ph
 sed -i "s/display_errors = .*/display_errors = On/" /etc/php/7.0/apache2/php.ini
 sudo phpenmod memcached
 
-# MySQL : Create user / Create db / Import db
+# MySQL : Create user / Create db / Import db / Config file
 mysql -uroot -proot -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'root' WITH GRANT OPTION; FLUSH PRIVILEGES;"
-mysql -uroot -proot -e "CREATE DATABASE ${PROJECTNAME}";
+mysql -uroot -proot -e "CREATE DATABASE ${BVF_PROJECTNAME}";
 if [ -f "/var/www/html/database.sql" ]; then
-    mysql -uroot -proot ${PROJECTNAME} < /var/www/html/database.sql;
+    mysql -uroot -proot ${BVF_PROJECTNAME} < /var/www/html/database.sql;
 fi
+# Config file
+BVF_MYCNF=$(cat <<EOF
+[mysql]
+user=root
+password=root
+[mysqladmin]
+user=root
+password=root
+EOF
+)
+echo "${BVF_MYCNF}" > /home/ubuntu/.my.cnf
 
 # Mailcatcher
 # - cron
@@ -70,8 +82,8 @@ rm tmp_crontab
 sudo update-rc.d cron defaults
 # - enable
 sudo phpenmod mailcatcher
-echo "sendmail_from = mailcatcher@${PROJECTNAME}.dev" | sudo tee --append /etc/php/7.0/apache2/php.ini
-echo "sendmail_path = /usr/bin/env $(which catchmail) -f mailcatcher@${PROJECTNAME}.dev" | sudo tee --append /etc/php/7.0/apache2/php.ini
+echo "sendmail_from = mailcatcher@${BVF_PROJECTNDD}" | sudo tee --append /etc/php/7.0/apache2/php.ini
+echo "sendmail_path = /usr/bin/env $(which catchmail) -f mailcatcher@${BVF_PROJECTNDD}" | sudo tee --append /etc/php/7.0/apache2/php.ini
 # - start
 /usr/bin/env $(which mailcatcher) --ip=0.0.0.0
 
@@ -80,9 +92,9 @@ echo "sendmail_path = /usr/bin/env $(which catchmail) -f mailcatcher@${PROJECTNA
 ###################################
 
 # Virtual host
-VHOST=$(cat <<EOF
+BVF_VHOST=$(cat <<EOF
 <VirtualHost *:80>
-    ServerName ${PROJECTNAME}.dev
+    ServerName ${BVF_PROJECTNDD}
     DocumentRoot "/var/www/html/htdocs"
     <Directory "/var/www/html/htdocs">
         AllowOverride All
@@ -91,7 +103,7 @@ VHOST=$(cat <<EOF
 </VirtualHost>
 EOF
 )
-echo "${VHOST}" > /etc/apache2/sites-available/000-default.conf
+echo "${BVF_VHOST}" > /etc/apache2/sites-available/000-default.conf
 
 # Restart
 service apache2 restart
@@ -109,6 +121,20 @@ curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.pha
 chmod +x wp-cli.phar
 sudo mv wp-cli.phar /usr/local/bin/wp
 
+# Default folder
+echo "cd /var/www/html/htdocs/ >& /dev/null" >> /home/ubuntu/.bash_aliases;
+
 # Aliases
 echo "alias magetools='. /home/ubuntu/InteGentoMageTools/magetools.sh';" >> /home/ubuntu/.bash_aliases;
 echo "alias ht='cd /var/www/html/htdocs/';" >> /home/ubuntu/.bash_aliases;
+sudo chmod 0755 /home/ubuntu/.bash_aliases;
+
+# Custom .inputrc
+BVF_INPUTRC=$(cat <<EOF
+"\e[A": history-search-backward
+"\e[B": history-search-forward
+set show-all-if-ambiguous on
+set completion-ignore-case on
+EOF
+)
+echo "${BVF_INPUTRC}" > /home/ubuntu/.inputrc;

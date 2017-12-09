@@ -15,7 +15,7 @@ A Basic VagrantFile for LAMP Projects like WordPress & Magento
 - Add a MySQL dump file if you need it at the root of the folder : database.sql.
 - Clone your project in the htdocs folder : `git clone git@.../project.git htdocs`
 - `vagrant up` at the root of the project folder.
-- Your project is now available in your browser : http://mycoolproject.dev.
+- Your project is now available in your browser : http://mycoolproject.test.
 
 ## What's installed :
 

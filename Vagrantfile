@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# VagrantFile Bootstrap v 0.4.2
+# VagrantFile Bootstrap v 0.5.0
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -10,6 +10,7 @@
 # Project settings
 VAGRANTFILE_MYPROJECT_IP = "192.168.33.1"
 VAGRANTFILE_MYPROJECT_NAME = "mycoolproject"
+VAGRANTFILE_MYPROJECT_DOMAIN = "mycoolproject.test"
 
 # Vagrantfile API/syntax version.
 VAGRANTFILE_API_VERSION = "2"
@@ -27,12 +28,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.synced_folder "./", "/var/www/html", :mount_options => ["dmode=777,fmode=666"]
 
   # Define the bootstrap file: A (shell) script that runs after first setup of your box (= provisioning)
-  config.vm.provision :shell, path: "https://raw.githubusercontent.com/Darklg/BaseVagrantFile/master/bootstrap.sh", :args => [VAGRANTFILE_MYPROJECT_NAME]
+  config.vm.provision :shell, path: "https://raw.githubusercontent.com/Darklg/BaseVagrantFile/master/bootstrap.sh", :args => [VAGRANTFILE_MYPROJECT_NAME, VAGRANTFILE_MYPROJECT_DOMAIN]
   # OR Local version for debug purposes
-  # config.vm.provision :shell, path: "bootstrap.sh", :args => [VAGRANTFILE_MYPROJECT_NAME]
+  # config.vm.provision :shell, path: "bootstrap.sh", :args => [VAGRANTFILE_MYPROJECT_NAME, VAGRANTFILE_MYPROJECT_DOMAIN]
 
   # Hostname
-  config.vm.hostname = VAGRANTFILE_MYPROJECT_NAME+'.dev'
+  config.vm.hostname = VAGRANTFILE_MYPROJECT_DOMAIN
   config.hostmanager.enabled = true
   config.hostmanager.manage_host = true
 
