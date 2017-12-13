@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.5.0
+# VagrantFile Bootstrap v 0.5.1
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
-# Project name
+# External config
 BVF_PROJECTNAME="${1}";
 BVF_PROJECTNDD="${2}";
+
+# Internal config
+BVF_PHPINI_FILE="/etc/php/7.0/apache2/php.ini";
 
 ###################################
 ## Install
@@ -52,17 +55,18 @@ sudo apt-get install -y php7.0-common php7.0-dev php7.0-json php7.0-opcache php7
 sudo a2enmod rewrite
 
 # PHP
-sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php/7.0/apache2/php.ini
-sed -i "s/display_errors = .*/display_errors = On/" /etc/php/7.0/apache2/php.ini
+sed -i "s/error_reporting = .*/error_reporting = E_ALL/" ${BVF_PHPINI_FILE}
+sed -i "s/display_errors = .*/display_errors = On/" ${BVF_PHPINI_FILE}
 sudo phpenmod memcached
 
-# MySQL : Create user / Create db / Import db / Config file
+# MySQL
+# - Create user / Create db / Import db / Config file
 mysql -uroot -proot -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'root' WITH GRANT OPTION; FLUSH PRIVILEGES;"
 mysql -uroot -proot -e "CREATE DATABASE ${BVF_PROJECTNAME}";
 if [ -f "/var/www/html/database.sql" ]; then
     mysql -uroot -proot ${BVF_PROJECTNAME} < /var/www/html/database.sql;
 fi
-# Config file
+# - Config file
 BVF_MYCNF=$(cat <<EOF
 [mysql]
 user=root
@@ -81,9 +85,8 @@ crontab tmp_crontab
 rm tmp_crontab
 sudo update-rc.d cron defaults
 # - enable
-sudo phpenmod mailcatcher
-echo "sendmail_from = mailcatcher@${BVF_PROJECTNDD}" | sudo tee --append /etc/php/7.0/apache2/php.ini
-echo "sendmail_path = /usr/bin/env $(which catchmail) -f mailcatcher@${BVF_PROJECTNDD}" | sudo tee --append /etc/php/7.0/apache2/php.ini
+echo "sendmail_from = mailcatcher@${BVF_PROJECTNDD}" | sudo tee --append ${BVF_PHPINI_FILE}
+echo "sendmail_path = /usr/bin/env $(which catchmail) -f mailcatcher@${BVF_PROJECTNDD}" | sudo tee --append ${BVF_PHPINI_FILE}
 # - start
 /usr/bin/env $(which mailcatcher) --ip=0.0.0.0
 

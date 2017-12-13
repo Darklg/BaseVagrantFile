@@ -1,14 +1,14 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# VagrantFile Bootstrap v 0.5.0
+# VagrantFile Bootstrap v 0.5.1
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 # Project settings
-VAGRANTFILE_MYPROJECT_IP = "192.168.33.1"
+VAGRANTFILE_MYPROJECT_IP = "192.168.33.99"
 VAGRANTFILE_MYPROJECT_NAME = "mycoolproject"
 VAGRANTFILE_MYPROJECT_DOMAIN = "mycoolproject.test"
 
