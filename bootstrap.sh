@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.5.1
+# VagrantFile Bootstrap v 0.5.2
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -12,14 +12,17 @@ BVF_PROJECTNDD="${2}";
 
 # Internal config
 BVF_PHPINI_FILE="/etc/php/7.0/apache2/php.ini";
+BVF_ROOT_DIR="/var/www/html";
+BVF_HTDOCS_DIR="${BVF_ROOT_DIR}/htdocs";
 
 ###################################
 ## Install
 ###################################
 
 # Project folder
-if [ ! -d "/var/www/html/htdocs" ]; then
-    sudo mkdir "/var/www/html/htdocs";
+if [ ! -d "${BVF_HTDOCS_DIR}" ]; then
+    sudo mkdir "${BVF_HTDOCS_DIR}";
+    echo "<?php phpinfo(); " > "${BVF_HTDOCS_DIR}/index.php";
 fi
 
 # Add repos
@@ -63,8 +66,8 @@ sudo phpenmod memcached
 # - Create user / Create db / Import db / Config file
 mysql -uroot -proot -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'root' WITH GRANT OPTION; FLUSH PRIVILEGES;"
 mysql -uroot -proot -e "CREATE DATABASE ${BVF_PROJECTNAME}";
-if [ -f "/var/www/html/database.sql" ]; then
-    mysql -uroot -proot ${BVF_PROJECTNAME} < /var/www/html/database.sql;
+if [ -f "${BVF_ROOT_DIR}/database.sql" ]; then
+    mysql -uroot -proot ${BVF_PROJECTNAME} < "${BVF_ROOT_DIR}/database.sql";
 fi
 # - Config file
 BVF_MYCNF=$(cat <<EOF
@@ -98,8 +101,8 @@ echo "sendmail_path = /usr/bin/env $(which catchmail) -f mailcatcher@${BVF_PROJE
 BVF_VHOST=$(cat <<EOF
 <VirtualHost *:80>
     ServerName ${BVF_PROJECTNDD}
-    DocumentRoot "/var/www/html/htdocs"
-    <Directory "/var/www/html/htdocs">
+    DocumentRoot "${BVF_HTDOCS_DIR}"
+    <Directory "${BVF_HTDOCS_DIR}">
         AllowOverride All
         Require all granted
     </Directory>
@@ -124,12 +127,16 @@ curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.pha
 chmod +x wp-cli.phar
 sudo mv wp-cli.phar /usr/local/bin/wp
 
+# Composer
+curl -s https://getcomposer.org/installer | php
+mv composer.phar /usr/local/bin/composer
+
 # Default folder
-echo "cd /var/www/html/htdocs/ >& /dev/null" >> /home/ubuntu/.bash_aliases;
+echo "cd ${BVF_HTDOCS_DIR} >& /dev/null" >> /home/ubuntu/.bash_aliases;
 
 # Aliases
 echo "alias magetools='. /home/ubuntu/InteGentoMageTools/magetools.sh';" >> /home/ubuntu/.bash_aliases;
-echo "alias ht='cd /var/www/html/htdocs/';" >> /home/ubuntu/.bash_aliases;
+echo "alias ht='cd ${BVF_HTDOCS_DIR}';" >> /home/ubuntu/.bash_aliases;
 sudo chmod 0755 /home/ubuntu/.bash_aliases;
 
 # Custom .inputrc
