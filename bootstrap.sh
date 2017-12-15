@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.5.2
+# VagrantFile Bootstrap v 0.6.0
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -9,6 +9,8 @@
 # External config
 BVF_PROJECTNAME="${1}";
 BVF_PROJECTNDD="${2}";
+BVF_PROJECTHASWORDPRESS="${3}";
+BVF_PROJECTHASMAGENTO="${4}";
 
 # Internal config
 BVF_PHPINI_FILE="/etc/php/7.0/apache2/php.ini";
@@ -28,6 +30,10 @@ fi
 # Add repos
 sudo add-apt-repository ppa:ondrej/php
 sudo add-apt-repository ppa:chris-lea/redis-server
+
+# Locales
+sudo locale-gen en_US en_US.UTF-8 fr_FR fr_FR.UTF-8
+sudo dpkg-reconfigure locales
 
 # update / upgrade
 sudo apt-get update
@@ -118,24 +124,28 @@ service apache2 restart
 ## Add tools
 ###################################
 
-# Magetools
-cd /home/ubuntu && git clone https://github.com/Darklg/InteGentoMageTools.git;
-touch /home/ubuntu/.bash_aliases;
-
-# WP-Cli
-curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar;
-chmod +x wp-cli.phar
-sudo mv wp-cli.phar /usr/local/bin/wp
-
 # Composer
 curl -s https://getcomposer.org/installer | php
 mv composer.phar /usr/local/bin/composer
+
+if [[ ${BVF_PROJECTHASMAGENTO} == '1' ]]; then
+    # Magetools
+    cd /home/ubuntu && git clone https://github.com/Darklg/InteGentoMageTools.git;
+    touch /home/ubuntu/.bash_aliases;
+    echo "alias magetools='. /home/ubuntu/InteGentoMageTools/magetools.sh';" >> /home/ubuntu/.bash_aliases;
+fi;
+
+if [[ ${BVF_PROJECTHASWORDPRESS} == '1' ]]; then
+    # WP-Cli
+    cd /home/ubuntu && curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar;
+    chmod +x wp-cli.phar
+    sudo mv wp-cli.phar /usr/local/bin/wp
+fi;
 
 # Default folder
 echo "cd ${BVF_HTDOCS_DIR} >& /dev/null" >> /home/ubuntu/.bash_aliases;
 
 # Aliases
-echo "alias magetools='. /home/ubuntu/InteGentoMageTools/magetools.sh';" >> /home/ubuntu/.bash_aliases;
 echo "alias ht='cd ${BVF_HTDOCS_DIR}';" >> /home/ubuntu/.bash_aliases;
 sudo chmod 0755 /home/ubuntu/.bash_aliases;
 
