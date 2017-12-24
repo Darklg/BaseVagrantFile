@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.6.0
+# VagrantFile Bootstrap v 0.6.1
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -8,7 +8,13 @@
 
 # External config
 BVF_PROJECTNAME="${1}";
+if [ -z "${BVF_PROJECTNAME}" ]; then
+    BVF_PROJECTNAME="mycoolproject";
+fi
 BVF_PROJECTNDD="${2}";
+if [ -z "${BVF_PROJECTNDD}" ]; then
+    BVF_PROJECTNDD="${BVF_PROJECTNAME}.test";
+fi
 BVF_PROJECTHASWORDPRESS="${3}";
 BVF_PROJECTHASMAGENTO="${4}";
 
@@ -21,19 +27,15 @@ BVF_HTDOCS_DIR="${BVF_ROOT_DIR}/htdocs";
 ## Install
 ###################################
 
-# Project folder
-if [ ! -d "${BVF_HTDOCS_DIR}" ]; then
-    sudo mkdir "${BVF_HTDOCS_DIR}";
-    echo "<?php phpinfo(); " > "${BVF_HTDOCS_DIR}/index.php";
-fi
-
 # Add repos
 sudo add-apt-repository ppa:ondrej/php
 sudo add-apt-repository ppa:chris-lea/redis-server
 
 # Locales
+sudo export DEBIAN_FRONTEND=noninteractive;
 sudo locale-gen en_US en_US.UTF-8 fr_FR fr_FR.UTF-8
 sudo dpkg-reconfigure locales
+sudo export DEBIAN_FRONTEND=dialog;
 
 # update / upgrade
 sudo apt-get update
@@ -89,15 +91,21 @@ echo "${BVF_MYCNF}" > /home/ubuntu/.my.cnf
 
 # Mailcatcher
 # - cron
-sudo echo "@reboot $(which mailcatcher) --ip=0.0.0.0" >> tmp_crontab
+echo "@reboot $(which mailcatcher) --ip=0.0.0.0" | sudo tee --append tmp_crontab
 crontab tmp_crontab
-rm tmp_crontab
+sudo rm tmp_crontab
 sudo update-rc.d cron defaults
 # - enable
 echo "sendmail_from = mailcatcher@${BVF_PROJECTNDD}" | sudo tee --append ${BVF_PHPINI_FILE}
 echo "sendmail_path = /usr/bin/env $(which catchmail) -f mailcatcher@${BVF_PROJECTNDD}" | sudo tee --append ${BVF_PHPINI_FILE}
 # - start
 /usr/bin/env $(which mailcatcher) --ip=0.0.0.0
+
+# Project folder
+if [ ! -d "${BVF_HTDOCS_DIR}" ]; then
+    sudo mkdir "${BVF_HTDOCS_DIR}";
+    echo "<?php phpinfo(); " > "${BVF_HTDOCS_DIR}/index.php";
+fi
 
 ###################################
 ## Hosts
@@ -158,3 +166,7 @@ set completion-ignore-case on
 EOF
 )
 echo "${BVF_INPUTRC}" > /home/ubuntu/.inputrc;
+
+echo '###################################';
+echo '## VAGRANT BOX IS INSTALLED';
+echo '###################################';
