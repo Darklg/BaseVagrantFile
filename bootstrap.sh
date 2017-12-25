@@ -22,6 +22,7 @@ BVF_PROJECTHASMAGENTO="${4}";
 BVF_PHPINI_FILE="/etc/php/7.0/apache2/php.ini";
 BVF_ROOT_DIR="/var/www/html";
 BVF_HTDOCS_DIR="${BVF_ROOT_DIR}/htdocs";
+BVF_CONTROL_FILE="/var/www/.basevagrantfile";
 
 ###################################
 ## Install
@@ -53,8 +54,10 @@ sudo gem install mailcatcher --no-rdoc --no-ri;
 ###################################
 
 # MySQL pre-conf
-sudo debconf-set-selections <<< "mysql-server mysql-server/root_password password root"
-sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again password root"
+if [ ! -f "${BVF_CONTROL_FILE}" ]; then
+    sudo debconf-set-selections <<< "mysql-server mysql-server/root_password password root"
+    sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again password root"
+fi;
 
 # Install
 sudo apt-get install -y apache2
@@ -73,7 +76,7 @@ sudo phpenmod memcached
 # MySQL
 # - Create user / Create db / Import db / Config file
 mysql -uroot -proot -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'root' WITH GRANT OPTION; FLUSH PRIVILEGES;"
-mysql -uroot -proot -e "CREATE DATABASE ${BVF_PROJECTNAME}";
+mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS ${BVF_PROJECTNAME}";
 if [ -f "${BVF_ROOT_DIR}/database.sql" ]; then
     mysql -uroot -proot ${BVF_PROJECTNAME} < "${BVF_ROOT_DIR}/database.sql";
 fi
@@ -87,19 +90,23 @@ user=root
 password=root
 EOF
 )
-echo "${BVF_MYCNF}" > /home/ubuntu/.my.cnf
+if [ ! -f "/home/ubuntu/.my.cnf" ]; then
+    echo "${BVF_MYCNF}" > /home/ubuntu/.my.cnf
+fi;
 
 # Mailcatcher
-# - cron
-echo "@reboot $(which mailcatcher) --ip=0.0.0.0" | sudo tee --append tmp_crontab
-crontab tmp_crontab
-sudo rm tmp_crontab
-sudo update-rc.d cron defaults
-# - enable
-echo "sendmail_from = mailcatcher@${BVF_PROJECTNDD}" | sudo tee --append ${BVF_PHPINI_FILE}
-echo "sendmail_path = /usr/bin/env $(which catchmail) -f mailcatcher@${BVF_PROJECTNDD}" | sudo tee --append ${BVF_PHPINI_FILE}
-# - start
-/usr/bin/env $(which mailcatcher) --ip=0.0.0.0
+if [ ! -f "${BVF_CONTROL_FILE}" ]; then
+    # - cron
+    echo "@reboot $(which mailcatcher) --ip=0.0.0.0" | sudo tee --append tmp_crontab
+    crontab tmp_crontab
+    sudo rm tmp_crontab
+    sudo update-rc.d cron defaults
+    # - enable
+    echo "sendmail_from = mailcatcher@${BVF_PROJECTNDD}" | sudo tee --append ${BVF_PHPINI_FILE}
+    echo "sendmail_path = /usr/bin/env $(which catchmail) -f mailcatcher@${BVF_PROJECTNDD}" | sudo tee --append ${BVF_PHPINI_FILE}
+    # - start
+    /usr/bin/env $(which mailcatcher) --ip=0.0.0.0
+fi;
 
 # Project folder
 if [ ! -d "${BVF_HTDOCS_DIR}" ]; then
@@ -134,27 +141,43 @@ service apache2 restart
 
 # Composer
 curl -s https://getcomposer.org/installer | php
-mv composer.phar /usr/local/bin/composer
+if [ ! -f "/usr/local/bin/composer" ]; then
+    mv composer.phar /usr/local/bin/composer
+else
+    composer self-update;
+fi;
+
+# Aliases
+if [ ! -f "/home/ubuntu/.bash_aliases" ]; then
+    touch /home/ubuntu/.bash_aliases;
+fi;
 
 if [[ ${BVF_PROJECTHASMAGENTO} == '1' ]]; then
     # Magetools
     cd /home/ubuntu && git clone https://github.com/Darklg/InteGentoMageTools.git;
-    touch /home/ubuntu/.bash_aliases;
-    echo "alias magetools='. /home/ubuntu/InteGentoMageTools/magetools.sh';" >> /home/ubuntu/.bash_aliases;
+    if [ ! -f "${BVF_CONTROL_FILE}" ]; then
+        echo "alias magetools='. /home/ubuntu/InteGentoMageTools/magetools.sh';" >> /home/ubuntu/.bash_aliases;
+    fi;
 fi;
 
 if [[ ${BVF_PROJECTHASWORDPRESS} == '1' ]]; then
     # WP-Cli
     cd /home/ubuntu && curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar;
     chmod +x wp-cli.phar
-    sudo mv wp-cli.phar /usr/local/bin/wp
+    if [ ! -f "/usr/local/bin/wp" ]; then
+        sudo mv wp-cli.phar /usr/local/bin/wp
+    fi;
 fi;
 
 # Default folder
-echo "cd ${BVF_HTDOCS_DIR} >& /dev/null" >> /home/ubuntu/.bash_aliases;
+if [ ! -f "${BVF_CONTROL_FILE}" ]; then
+    echo "cd ${BVF_HTDOCS_DIR} >& /dev/null" >> /home/ubuntu/.bash_aliases;
+fi;
 
 # Aliases
-echo "alias ht='cd ${BVF_HTDOCS_DIR}';" >> /home/ubuntu/.bash_aliases;
+if [ ! -f "${BVF_CONTROL_FILE}" ]; then
+    echo "alias ht='cd ${BVF_HTDOCS_DIR}';" >> /home/ubuntu/.bash_aliases;
+fi;
 sudo chmod 0755 /home/ubuntu/.bash_aliases;
 
 # Custom .inputrc
@@ -165,8 +188,12 @@ set show-all-if-ambiguous on
 set completion-ignore-case on
 EOF
 )
-echo "${BVF_INPUTRC}" > /home/ubuntu/.inputrc;
+if [ ! -f "/home/ubuntu/.inputrc" ]; then
+    echo "${BVF_INPUTRC}" > /home/ubuntu/.inputrc;
+fi;
 
 echo '###################################';
 echo '## VAGRANT BOX IS INSTALLED';
 echo '###################################';
+
+touch "${BVF_CONTROL_FILE}";
