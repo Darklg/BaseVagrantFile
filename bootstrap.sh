@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.6.1
+# VagrantFile Bootstrap v 0.8.0
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -22,6 +22,7 @@ BVF_PROJECTHASMAGENTO="${4}";
 BVF_PHPINI_FILE="/etc/php/7.0/apache2/php.ini";
 BVF_ROOT_DIR="/var/www/html";
 BVF_HTDOCS_DIR="${BVF_ROOT_DIR}/htdocs";
+BVF_LOGS_DIR="${BVF_ROOT_DIR}/logs";
 BVF_CONTROL_FILE="/var/www/.basevagrantfile";
 
 ###################################
@@ -37,6 +38,7 @@ sudo export DEBIAN_FRONTEND=noninteractive;
 sudo locale-gen en_US en_US.UTF-8 fr_FR fr_FR.UTF-8
 sudo dpkg-reconfigure locales
 sudo export DEBIAN_FRONTEND=dialog;
+sudo timedatectl set-timezone Europe/Paris;
 
 # update / upgrade
 sudo apt-get update
@@ -52,6 +54,12 @@ sudo gem install mailcatcher --no-rdoc --no-ri;
 ###################################
 ## PHP & Apache & MySQL
 ###################################
+
+# Logs
+if [ ! -d "${BVF_LOGS_DIR}" ]; then
+    sudo mkdir "${BVF_LOGS_DIR}";
+    chmod 0777 "${BVF_LOGS_DIR}";
+fi
 
 # MySQL pre-conf
 if [ ! -f "${BVF_CONTROL_FILE}" ]; then
@@ -69,6 +77,8 @@ sudo apt-get install -y php7.0-common php7.0-dev php7.0-json php7.0-opcache php7
 sudo a2enmod rewrite
 
 # PHP
+BVF_PHPERROR_LOG=$(sed 's/\//\\\//g' <<< "${BVF_LOGS_DIR}/php-error.log");
+sed -i "s/;error_log = .*/error_log = ${BVF_PHPERROR_LOG}/" ${BVF_PHPINI_FILE}
 sed -i "s/error_reporting = .*/error_reporting = E_ALL/" ${BVF_PHPINI_FILE}
 sed -i "s/display_errors = .*/display_errors = On/" ${BVF_PHPINI_FILE}
 sudo phpenmod memcached
@@ -118,11 +128,23 @@ fi
 ## Hosts
 ###################################
 
+# Logs
+BVF_APACHE_ACCESSLOG="${BVF_LOGS_DIR}/${BVF_PROJECTNDD}-access.log";
+BVF_APACHE_ERRORLOG="${BVF_LOGS_DIR}/${BVF_PROJECTNDD}-error.log";
+
+touch ${BVF_APACHE_ACCESSLOG};
+touch ${BVF_APACHE_ERRORLOG};
+
+chmod 0777 ${BVF_APACHE_ACCESSLOG};
+chmod 0777 ${BVF_APACHE_ERRORLOG};
+
 # Virtual host
 BVF_VHOST=$(cat <<EOF
 <VirtualHost *:80>
     ServerName ${BVF_PROJECTNDD}
     DocumentRoot "${BVF_HTDOCS_DIR}"
+    CustomLog ${BVF_APACHE_ACCESSLOG} combined
+    ErrorLog ${BVF_APACHE_ERRORLOG}
     <Directory "${BVF_HTDOCS_DIR}">
         AllowOverride All
         Require all granted
