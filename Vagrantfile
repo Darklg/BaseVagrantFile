@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# VagrantFile Bootstrap v 0.8.0
+# VagrantFile Bootstrap v 0.8.1
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg

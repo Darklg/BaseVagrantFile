@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.8.0
+# VagrantFile Bootstrap v 0.8.1
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -84,12 +84,18 @@ sed -i "s/display_errors = .*/display_errors = On/" ${BVF_PHPINI_FILE}
 sudo phpenmod memcached
 
 # MySQL
-# - Create user / Create db / Import db / Config file
+# - Create user
 mysql -uroot -proot -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'root' WITH GRANT OPTION; FLUSH PRIVILEGES;"
+# - Create db
 mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS ${BVF_PROJECTNAME}";
-if [ -f "${BVF_ROOT_DIR}/database.sql" ]; then
-    mysql -uroot -proot ${BVF_PROJECTNAME} < "${BVF_ROOT_DIR}/database.sql";
-fi
+# - Import first .sql file available
+for dbfile in `ls ${BVF_HTDOCS_DIR}/*.sql 2>/dev/null`; do
+    if [[ -f "${dbfile}" ]]; then
+        mysql -uroot -proot ${BVF_PROJECTNAME} < "${dbfile}";
+        break;
+    fi;
+done;
+
 # - Config file
 BVF_MYCNF=$(cat <<EOF
 [mysql]

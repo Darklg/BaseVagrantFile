@@ -12,7 +12,7 @@ A Basic VagrantFile for LAMP Projects like WordPress & Magento
 - Create your project folder.
 - Put the Vagrantfile in this folder.
 - Change the IP address and the project name in the Vagrantfile (open with a text editor).
-- Add a MySQL dump file if you need it at the root of the folder : database.sql.
+- Add a MySQL dump file (with the .sql ext) if needed, at the root of the folder (only the first one will be used).
 - Clone your project in the htdocs folder : `git clone git@.../project.git htdocs`
 - `vagrant up` at the root of the project folder.
 - Your project is now available in your browser : http://mycoolproject.test.
