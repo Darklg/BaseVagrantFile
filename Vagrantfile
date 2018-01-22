@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# VagrantFile Bootstrap v 0.8.2
+# VagrantFile Bootstrap v 0.8.3
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -41,6 +41,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision :shell, path: "https://raw.githubusercontent.com/Darklg/BaseVagrantFile/master/bootstrap.sh", :args => VAGRANTFILE_ARGS
   # OR Local version for debug purposes
   # config.vm.provision :shell, path: "bootstrap.sh", :args => VAGRANTFILE_ARGS
+
+  # Restart some services after mounting
+  config.vm.provision :shell, :inline => "sudo systemctl restart apache2", run: "always"
 
   # Hostname
   config.vm.hostname = VAGRANTFILE_MYPROJECT_DOMAIN

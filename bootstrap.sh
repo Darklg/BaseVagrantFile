@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.8.2
+# VagrantFile Bootstrap v 0.8.3
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -24,6 +24,7 @@ BVF_ROOT_DIR="/var/www/html";
 BVF_HTDOCS_DIR="${BVF_ROOT_DIR}/htdocs";
 BVF_LOGS_DIR="${BVF_ROOT_DIR}/logs";
 BVF_CONTROL_FILE="/var/www/.basevagrantfile";
+BVF_ALIASES_FILE="/home/ubuntu/.bash_aliases";
 
 ###################################
 ## Install
@@ -81,6 +82,7 @@ BVF_PHPERROR_LOG=$(sed 's/\//\\\//g' <<< "${BVF_LOGS_DIR}/php-error.log");
 sed -i "s/;error_log = .*/error_log = ${BVF_PHPERROR_LOG}/" ${BVF_PHPINI_FILE}
 sed -i "s/error_reporting = .*/error_reporting = E_ALL/" ${BVF_PHPINI_FILE}
 sed -i "s/display_errors = .*/display_errors = On/" ${BVF_PHPINI_FILE}
+sed -i "s/upload_max_filesize = .*/upload_max_filesize = 32M/" ${BVF_PHPINI_FILE}
 sudo phpenmod memcached
 
 # MySQL
@@ -177,15 +179,15 @@ else
 fi;
 
 # Aliases
-if [ ! -f "/home/ubuntu/.bash_aliases" ]; then
-    touch /home/ubuntu/.bash_aliases;
+if [ ! -f "${BVF_ALIASES_FILE}" ]; then
+    touch "${BVF_ALIASES_FILE}";
 fi;
 
 if [[ ${BVF_PROJECTHASMAGENTO} == '1' ]]; then
     # Magetools
     cd /home/ubuntu && git clone https://github.com/Darklg/InteGentoMageTools.git;
     if [ ! -f "${BVF_CONTROL_FILE}" ]; then
-        echo "alias magetools='. /home/ubuntu/InteGentoMageTools/magetools.sh';" >> /home/ubuntu/.bash_aliases;
+        echo "alias magetools='. /home/ubuntu/InteGentoMageTools/magetools.sh';" >> "${BVF_ALIASES_FILE}";
     fi;
 fi;
 
@@ -200,14 +202,14 @@ fi;
 
 # Default folder
 if [ ! -f "${BVF_CONTROL_FILE}" ]; then
-    echo "cd ${BVF_HTDOCS_DIR} >& /dev/null" >> /home/ubuntu/.bash_aliases;
+    echo "cd ${BVF_HTDOCS_DIR} >& /dev/null" >> "${BVF_ALIASES_FILE}";
 fi;
 
 # Aliases
 if [ ! -f "${BVF_CONTROL_FILE}" ]; then
-    echo "alias ht='cd ${BVF_HTDOCS_DIR}';" >> /home/ubuntu/.bash_aliases;
+    echo "alias ht='cd ${BVF_HTDOCS_DIR}';" >> "${BVF_ALIASES_FILE}";
 fi;
-sudo chmod 0755 /home/ubuntu/.bash_aliases;
+sudo chmod 0755 "${BVF_ALIASES_FILE}";
 
 # Custom .inputrc
 BVF_INPUTRC=$(cat <<EOF
