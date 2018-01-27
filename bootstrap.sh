@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.8.3
+# VagrantFile Bootstrap v 0.8.4
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -132,6 +132,16 @@ if [ ! -d "${BVF_HTDOCS_DIR}" ]; then
     sudo mkdir "${BVF_HTDOCS_DIR}";
     echo "<?php phpinfo(); " > "${BVF_HTDOCS_DIR}/index.php";
 fi
+
+# PHPMyAdmin
+if [ ! -f "${BVF_CONTROL_FILE}" ]; then
+    sudo debconf-set-selections <<< 'phpmyadmin phpmyadmin/dbconfig-install boolean true';
+    sudo debconf-set-selections <<< 'phpmyadmin phpmyadmin/app-password-confirm password root';
+    sudo debconf-set-selections <<< 'phpmyadmin phpmyadmin/mysql/admin-pass password root';
+    sudo debconf-set-selections <<< 'phpmyadmin phpmyadmin/mysql/app-pass password root';
+    sudo debconf-set-selections <<< 'phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2';
+    sudo apt-get install -y phpmyadmin;
+fi;
 
 ###################################
 ## Hosts
