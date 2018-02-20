@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# VagrantFile Bootstrap v 0.8.4
+# VagrantFile Bootstrap v 0.9.0
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -13,6 +13,7 @@ VAGRANTFILE_MYPROJECT_NAME = "mycoolproject"
 VAGRANTFILE_MYPROJECT_DOMAIN = "mycoolproject.test"
 VAGRANTFILE_MYPROJECT_HAS_WORDPRESS = "1"
 VAGRANTFILE_MYPROJECT_HAS_MAGENTO = "1"
+VAGRANTFILE_MYPROJECT_PHP_VERSION = "7.0"
 
 # Vagrantfile API/syntax version.
 VAGRANTFILE_API_VERSION = "2"
@@ -22,7 +23,8 @@ VAGRANTFILE_ARGS = [
   VAGRANTFILE_MYPROJECT_NAME,
   VAGRANTFILE_MYPROJECT_DOMAIN,
   VAGRANTFILE_MYPROJECT_HAS_WORDPRESS,
-  VAGRANTFILE_MYPROJECT_HAS_MAGENTO
+  VAGRANTFILE_MYPROJECT_HAS_MAGENTO,
+  VAGRANTFILE_MYPROJECT_PHP_VERSION
 ]
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|

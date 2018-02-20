@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.8.4
+# VagrantFile Bootstrap v 0.9.0
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -17,9 +17,13 @@ if [ -z "${BVF_PROJECTNDD}" ]; then
 fi
 BVF_PROJECTHASWORDPRESS="${3}";
 BVF_PROJECTHASMAGENTO="${4}";
+BVF_PROJECTPHPVERSION="${5}";
+if [ -z "${BVF_PROJECTPHPVERSION}" ]; then
+    BVF_PROJECTPHPVERSION="7.0";
+fi
 
 # Internal config
-BVF_PHPINI_FILE="/etc/php/7.0/apache2/php.ini";
+BVF_PHPINI_FILE="/etc/php/${BVF_PROJECTPHPVERSION}/apache2/php.ini";
 BVF_ROOT_DIR="/var/www/html";
 BVF_HTDOCS_DIR="${BVF_ROOT_DIR}/htdocs";
 BVF_LOGS_DIR="${BVF_ROOT_DIR}/logs";
@@ -72,7 +76,8 @@ fi;
 sudo apt-get install -y apache2
 sudo apt-get install -y git-core redis-server
 sudo apt-get install -y mysql-server
-sudo apt-get install -y php7.0-common php7.0-dev php7.0-json php7.0-opcache php7.0-cli libapache2-mod-php7.0 php7.0 php7.0-mysql php7.0-fpm php7.0-curl php7.0-gd php7.0-mcrypt php7.0-mbstring php7.0-bcmath php7.0-zip php7.0-xml php-memcached
+sudo apt-get install -y php${BVF_PROJECTPHPVERSION}-common php${BVF_PROJECTPHPVERSION}-dev php${BVF_PROJECTPHPVERSION}-json php${BVF_PROJECTPHPVERSION}-opcache php${BVF_PROJECTPHPVERSION}-cli libapache2-mod-php${BVF_PROJECTPHPVERSION} php${BVF_PROJECTPHPVERSION} php${BVF_PROJECTPHPVERSION}-mysql php${BVF_PROJECTPHPVERSION}-fpm php${BVF_PROJECTPHPVERSION}-curl php${BVF_PROJECTPHPVERSION}-gd php${BVF_PROJECTPHPVERSION}-mcrypt php${BVF_PROJECTPHPVERSION}-mbstring php${BVF_PROJECTPHPVERSION}-bcmath php${BVF_PROJECTPHPVERSION}-zip php${BVF_PROJECTPHPVERSION}-xml
+sudo apt-get install -y php-memcached
 
 # Apache
 sudo a2enmod rewrite
