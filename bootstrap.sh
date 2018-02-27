@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.9.0
+# VagrantFile Bootstrap v 0.9.1
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -74,10 +74,11 @@ fi;
 
 # Install
 sudo apt-get install -y apache2
-sudo apt-get install -y git-core redis-server
+sudo apt-get install -y git-core
 sudo apt-get install -y mysql-server
 sudo apt-get install -y php${BVF_PROJECTPHPVERSION}-common php${BVF_PROJECTPHPVERSION}-dev php${BVF_PROJECTPHPVERSION}-json php${BVF_PROJECTPHPVERSION}-opcache php${BVF_PROJECTPHPVERSION}-cli libapache2-mod-php${BVF_PROJECTPHPVERSION} php${BVF_PROJECTPHPVERSION} php${BVF_PROJECTPHPVERSION}-mysql php${BVF_PROJECTPHPVERSION}-fpm php${BVF_PROJECTPHPVERSION}-curl php${BVF_PROJECTPHPVERSION}-gd php${BVF_PROJECTPHPVERSION}-mcrypt php${BVF_PROJECTPHPVERSION}-mbstring php${BVF_PROJECTPHPVERSION}-bcmath php${BVF_PROJECTPHPVERSION}-zip php${BVF_PROJECTPHPVERSION}-xml
 sudo apt-get install -y php-memcached
+sudo apt-get install -y redis-server php${BVF_PROJECTPHPVERSION}-redis
 
 # Apache
 sudo a2enmod rewrite
@@ -198,6 +199,12 @@ if [ ! -f "${BVF_ALIASES_FILE}" ]; then
     touch "${BVF_ALIASES_FILE}";
 fi;
 
+# Inte Starter
+cd /home/ubuntu && git clone https://github.com/Darklg/InteStarter.git;
+if [ ! -f "${BVF_CONTROL_FILE}" ]; then
+    echo "alias newinte='. /home/ubuntu/InteStarter/newinte.sh';" >> "${BVF_ALIASES_FILE}";
+fi;
+
 if [[ ${BVF_PROJECTHASMAGENTO} == '1' ]]; then
     # Magetools
     cd /home/ubuntu && git clone https://github.com/Darklg/InteGentoMageTools.git;
@@ -212,6 +219,11 @@ if [[ ${BVF_PROJECTHASWORDPRESS} == '1' ]]; then
     chmod +x wp-cli.phar
     if [ ! -f "/usr/local/bin/wp" ]; then
         sudo mv wp-cli.phar /usr/local/bin/wp
+    fi;
+    # WPU Installer
+    cd /home/ubuntu && git clone https://github.com/WordPressUtilities/WPUInstaller.git;
+    if [ ! -f "${BVF_CONTROL_FILE}" ]; then
+        echo "alias wpuinstaller='. /home/ubuntu/WPUInstaller/start.sh';" >> "${BVF_ALIASES_FILE}";
     fi;
 fi;
 
