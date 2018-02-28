@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.9.1
+# VagrantFile Bootstrap v 0.9.2
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -81,7 +81,7 @@ sudo apt-get install -y php-memcached
 sudo apt-get install -y redis-server php${BVF_PROJECTPHPVERSION}-redis
 
 # Apache
-sudo a2enmod rewrite
+sudo a2enmod rewrite ext_filter headers
 
 # PHP
 BVF_PHPERROR_LOG=$(sed 's/\//\\\//g' <<< "${BVF_LOGS_DIR}/php-error.log");
