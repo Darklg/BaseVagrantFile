@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.9.2
+# VagrantFile Bootstrap v 0.10.0
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -21,14 +21,22 @@ BVF_PROJECTPHPVERSION="${5}";
 if [ -z "${BVF_PROJECTPHPVERSION}" ]; then
     BVF_PROJECTPHPVERSION="7.0";
 fi
+BVF_PROJECTSERVERTYPE="${6}";
+if [ -z "${BVF_PROJECTSERVERTYPE}" ]; then
+    BVF_PROJECTSERVERTYPE="apache";
+fi
 
 # Internal config
-BVF_PHPINI_FILE="/etc/php/${BVF_PROJECTPHPVERSION}/apache2/php.ini";
 BVF_ROOT_DIR="/var/www/html";
 BVF_HTDOCS_DIR="${BVF_ROOT_DIR}/htdocs";
 BVF_LOGS_DIR="${BVF_ROOT_DIR}/logs";
 BVF_CONTROL_FILE="/var/www/.basevagrantfile";
 BVF_ALIASES_FILE="/home/ubuntu/.bash_aliases";
+
+BVF_PHPINI_FILE="/etc/php/${BVF_PROJECTPHPVERSION}/apache2/php.ini";
+if [[ ${BVF_PROJECTSERVERTYPE} == 'nginx' ]]; then
+    BVF_PHPINI_FILE="/etc/php/${BVF_PROJECTPHPVERSION}/fpm/php.ini";
+fi;
 
 ###################################
 ## Install
@@ -50,14 +58,14 @@ sudo apt-get update
 sudo apt-get -y upgrade
 
 # Tools
-sudo apt-get install -y vim htop curl git sendmail
+sudo apt-get install -y vim htop curl git sendmail git-core
 
 # Ruby
 sudo apt-get install -y build-essential libsqlite3-dev ruby-dev
 sudo gem install mailcatcher --no-rdoc --no-ri;
 
 ###################################
-## PHP & Apache & MySQL
+## PHP & Apache/nginx & MySQL
 ###################################
 
 # Logs
@@ -73,15 +81,22 @@ if [ ! -f "${BVF_CONTROL_FILE}" ]; then
 fi;
 
 # Install
-sudo apt-get install -y apache2
-sudo apt-get install -y git-core
 sudo apt-get install -y mysql-server
-sudo apt-get install -y php${BVF_PROJECTPHPVERSION}-common php${BVF_PROJECTPHPVERSION}-dev php${BVF_PROJECTPHPVERSION}-json php${BVF_PROJECTPHPVERSION}-opcache php${BVF_PROJECTPHPVERSION}-cli libapache2-mod-php${BVF_PROJECTPHPVERSION} php${BVF_PROJECTPHPVERSION} php${BVF_PROJECTPHPVERSION}-mysql php${BVF_PROJECTPHPVERSION}-fpm php${BVF_PROJECTPHPVERSION}-curl php${BVF_PROJECTPHPVERSION}-gd php${BVF_PROJECTPHPVERSION}-mcrypt php${BVF_PROJECTPHPVERSION}-mbstring php${BVF_PROJECTPHPVERSION}-bcmath php${BVF_PROJECTPHPVERSION}-zip php${BVF_PROJECTPHPVERSION}-xml
+if [[ ${BVF_PROJECTSERVERTYPE} == 'apache' ]]; then
+    sudo apt-get install -y apache2
+    sudo apt-get install -y libapache2-mod-php${BVF_PROJECTPHPVERSION}
+else
+    sudo apt-get install -y nginx
+    sudo apt-get install -y php${BVF_PROJECTPHPVERSION}-fpm
+fi;
+sudo apt-get install -y php${BVF_PROJECTPHPVERSION}-common php${BVF_PROJECTPHPVERSION}-dev php${BVF_PROJECTPHPVERSION}-json php${BVF_PROJECTPHPVERSION}-opcache php${BVF_PROJECTPHPVERSION}-cli php${BVF_PROJECTPHPVERSION} php${BVF_PROJECTPHPVERSION}-mysql php${BVF_PROJECTPHPVERSION}-fpm php${BVF_PROJECTPHPVERSION}-curl php${BVF_PROJECTPHPVERSION}-gd php${BVF_PROJECTPHPVERSION}-mcrypt php${BVF_PROJECTPHPVERSION}-mbstring php${BVF_PROJECTPHPVERSION}-bcmath php${BVF_PROJECTPHPVERSION}-zip php${BVF_PROJECTPHPVERSION}-xml
 sudo apt-get install -y php-memcached
 sudo apt-get install -y redis-server php${BVF_PROJECTPHPVERSION}-redis
 
 # Apache
-sudo a2enmod rewrite ext_filter headers
+if [[ ${BVF_PROJECTSERVERTYPE} == 'apache' ]]; then
+    sudo a2enmod rewrite ext_filter headers
+fi;
 
 # PHP
 BVF_PHPERROR_LOG=$(sed 's/\//\\\//g' <<< "${BVF_LOGS_DIR}/php-error.log");
@@ -145,7 +160,11 @@ if [ ! -f "${BVF_CONTROL_FILE}" ]; then
     sudo debconf-set-selections <<< 'phpmyadmin phpmyadmin/app-password-confirm password root';
     sudo debconf-set-selections <<< 'phpmyadmin phpmyadmin/mysql/admin-pass password root';
     sudo debconf-set-selections <<< 'phpmyadmin phpmyadmin/mysql/app-pass password root';
-    sudo debconf-set-selections <<< 'phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2';
+    if [[ ${BVF_PROJECTSERVERTYPE} == 'nginx' ]]; then
+        sudo debconf-set-selections <<< 'phpmyadmin phpmyadmin/reconfigure-webserver multiselect nginx';
+    else
+        sudo debconf-set-selections <<< 'phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2';
+    fi;
     sudo apt-get install -y phpmyadmin;
 fi;
 
@@ -154,33 +173,71 @@ fi;
 ###################################
 
 # Logs
-BVF_APACHE_ACCESSLOG="${BVF_LOGS_DIR}/${BVF_PROJECTNDD}-access.log";
-BVF_APACHE_ERRORLOG="${BVF_LOGS_DIR}/${BVF_PROJECTNDD}-error.log";
+BVF_SERVER_ACCESSLOG="${BVF_LOGS_DIR}/${BVF_PROJECTNDD}-access.log";
+BVF_SERVER_ERRORLOG="${BVF_LOGS_DIR}/${BVF_PROJECTNDD}-error.log";
 
-touch ${BVF_APACHE_ACCESSLOG};
-touch ${BVF_APACHE_ERRORLOG};
+touch ${BVF_SERVER_ACCESSLOG};
+touch ${BVF_SERVER_ERRORLOG};
 
-chmod 0777 ${BVF_APACHE_ACCESSLOG};
-chmod 0777 ${BVF_APACHE_ERRORLOG};
+chmod 0777 ${BVF_SERVER_ACCESSLOG};
+chmod 0777 ${BVF_SERVER_ERRORLOG};
 
-# Virtual host
-BVF_VHOST=$(cat <<EOF
+
+if [[ ${BVF_PROJECTSERVERTYPE} == 'nginx' ]]; then
+    # Virtual host
+    BVF_VHOST=$(cat <<EOF
+server {
+    listen 80;
+    server_name ${BVF_PROJECTNDD};
+
+    root ${BVF_HTDOCS_DIR};
+
+    index index.php index.html;
+
+    access_log ${BVF_SERVER_ACCESSLOG};
+    error_log ${BVF_SERVER_ERRORLOG};
+
+    location / {
+        try_files \$uri \$uri/ /index.php?\$args;
+    }
+
+    location ~ \.php\$ {
+        try_files \$uri =404;
+        fastcgi_index index.php;
+        fastcgi_pass unix:/run/php/php${BVF_PROJECTPHPVERSION}-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+        include /etc/nginx/fastcgi_params;
+    }
+}
+EOF
+);
+    echo "${BVF_VHOST}" > /etc/nginx/sites-available/default
+
+    # Restart
+    sudo service nginx restart
+fi;
+
+if [[ ${BVF_PROJECTSERVERTYPE} == 'apache' ]]; then
+
+    # Virtual host
+    BVF_VHOST=$(cat <<EOF
 <VirtualHost *:80>
     ServerName ${BVF_PROJECTNDD}
     DocumentRoot "${BVF_HTDOCS_DIR}"
-    CustomLog ${BVF_APACHE_ACCESSLOG} combined
-    ErrorLog ${BVF_APACHE_ERRORLOG}
+    CustomLog ${BVF_SERVER_ACCESSLOG} combined
+    ErrorLog ${BVF_SERVER_ERRORLOG}
     <Directory "${BVF_HTDOCS_DIR}">
         AllowOverride All
         Require all granted
     </Directory>
 </VirtualHost>
 EOF
-)
-echo "${BVF_VHOST}" > /etc/apache2/sites-available/000-default.conf
+);
+    echo "${BVF_VHOST}" > /etc/apache2/sites-available/000-default.conf
 
-# Restart
-service apache2 restart
+    # Restart
+    sudo service apache2 restart
+fi;
 
 ###################################
 ## Add tools
