@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.10.0
+# VagrantFile Bootstrap v 0.10.1
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -207,6 +207,23 @@ server {
         fastcgi_pass unix:/run/php/php${BVF_PROJECTPHPVERSION}-fpm.sock;
         fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
         include /etc/nginx/fastcgi_params;
+    }
+
+    location /phpmyadmin {
+        root /usr/share/;
+        index index.php;
+        try_files \$uri \$uri/ =404;
+
+        location ~ ^/phpmyadmin/(doc|sql|setup)/ {
+            deny all;
+        }
+
+        location ~ /phpmyadmin/(.+\.php)\$ {
+            fastcgi_pass unix:/run/php/php${BVF_PROJECTPHPVERSION}-fpm.sock;
+            fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+            include fastcgi_params;
+            include snippets/fastcgi-php.conf;
+        }
     }
 }
 EOF

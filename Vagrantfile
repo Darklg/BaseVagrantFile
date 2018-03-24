@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# VagrantFile Bootstrap v 0.10.0
+# VagrantFile Bootstrap v 0.10.1
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -11,8 +11,8 @@
 VAGRANTFILE_MYPROJECT_IP = "192.168.33.99"
 VAGRANTFILE_MYPROJECT_NAME = "mycoolproject"
 VAGRANTFILE_MYPROJECT_DOMAIN = "mycoolproject.test"
-VAGRANTFILE_MYPROJECT_HAS_WORDPRESS = "1"
-VAGRANTFILE_MYPROJECT_HAS_MAGENTO = "1"
+VAGRANTFILE_MYPROJECT_HAS_WORDPRESS = "0"
+VAGRANTFILE_MYPROJECT_HAS_MAGENTO = "0"
 VAGRANTFILE_MYPROJECT_PHP_VERSION = "7.0"
 VAGRANTFILE_MYPROJECT_SERVER_TYPE = "apache"
 
@@ -47,7 +47,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # config.vm.provision :shell, path: "bootstrap.sh", :args => VAGRANTFILE_ARGS
 
   # Restart some services after mounting
-  config.vm.provision :shell, :inline => "sudo systemctl restart apache2", run: "always"
+  config.vm.provision :shell, run: "always", inline: <<-SHELL
+  if service --status-all | grep -Fq 'apache2'; then
+    sudo service apache2 restart
+  fi
+  if service --status-all | grep -Fq 'nginx'; then
+    sudo service nginx restart
+  fi
+SHELL
 
   # Hostname
   config.vm.hostname = VAGRANTFILE_MYPROJECT_DOMAIN
