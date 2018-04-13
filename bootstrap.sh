@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.10.1
+# VagrantFile Bootstrap v 0.11.0
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -24,6 +24,10 @@ fi
 BVF_PROJECTSERVERTYPE="${6}";
 if [ -z "${BVF_PROJECTSERVERTYPE}" ]; then
     BVF_PROJECTSERVERTYPE="apache";
+fi
+BVF_PROJECTUSEHTTPS="${7}";
+if [ -z "${BVF_PROJECTUSEHTTPS}" ]; then
+    BVF_PROJECTUSEHTTPS="0";
 fi
 
 # Internal config
@@ -63,6 +67,11 @@ sudo apt-get install -y vim htop curl git sendmail git-core
 # Ruby
 sudo apt-get install -y build-essential libsqlite3-dev ruby-dev
 sudo gem install mailcatcher --no-rdoc --no-ri;
+
+# SSL certif
+cd "${BVF_ROOT_DIR}";
+openssl genrsa -out "${BVF_PROJECTNDD}".key 2048;
+openssl req -new -x509 -key "${BVF_PROJECTNDD}".key -out "${BVF_PROJECTNDD}".cert -days 3650 -subj /CN="${BVF_PROJECTNDD}";
 
 ###################################
 ## PHP & Apache/nginx & MySQL
@@ -250,6 +259,35 @@ if [[ ${BVF_PROJECTSERVERTYPE} == 'apache' ]]; then
 </VirtualHost>
 EOF
 );
+
+
+if [[ ${BVF_PROJECTUSEHTTPS} == '1' ]]; then
+    # Virtual host
+    BVF_VHOST=$(cat <<EOF
+<VirtualHost *:443>
+    ServerName ${BVF_PROJECTNDD}
+    DocumentRoot "${BVF_HTDOCS_DIR}"
+    #adding custom SSL cert
+    SSLEngine on
+    SSLCertificateFile ${BVF_ROOT_DIR}/${BVF_PROJECTNDD}.cert
+    SSLCertificateKeyFile ${BVF_ROOT_DIR}/${BVF_PROJECTNDD}.key
+    CustomLog ${BVF_SERVER_ACCESSLOG} combined
+    ErrorLog ${BVF_SERVER_ERRORLOG}
+    <Directory "${BVF_HTDOCS_DIR}">
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
+<VirtualHost *:80>
+    ServerName ${BVF_PROJECTNDD}
+    DocumentRoot "${BVF_HTDOCS_DIR}"
+    Redirect permanent / https://${BVF_PROJECTNDD}/
+</VirtualHost>
+EOF
+);
+fi;
+
+
     echo "${BVF_VHOST}" > /etc/apache2/sites-available/000-default.conf
 
     # Restart
