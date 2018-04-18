@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.11.0
+# VagrantFile Bootstrap v 0.11.1
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
+
+echo '###################################';
+echo '## INSTALLING VagrantFile v 0.11.1';
+echo '###################################';
 
 # External config
 BVF_PROJECTNAME="${1}";
@@ -32,10 +36,11 @@ fi
 
 # Internal config
 BVF_ROOT_DIR="/var/www/html";
+BVF_TOOLS_DIR="/home/ubuntu";
 BVF_HTDOCS_DIR="${BVF_ROOT_DIR}/htdocs";
 BVF_LOGS_DIR="${BVF_ROOT_DIR}/logs";
 BVF_CONTROL_FILE="/var/www/.basevagrantfile";
-BVF_ALIASES_FILE="/home/ubuntu/.bash_aliases";
+BVF_ALIASES_FILE="${BVF_TOOLS_DIR}/.bash_aliases";
 
 BVF_PHPINI_FILE="/etc/php/${BVF_PROJECTPHPVERSION}/apache2/php.ini";
 if [[ ${BVF_PROJECTSERVERTYPE} == 'nginx' ]]; then
@@ -139,8 +144,8 @@ user=root
 password=root
 EOF
 )
-if [ ! -f "/home/ubuntu/.my.cnf" ]; then
-    echo "${BVF_MYCNF}" > /home/ubuntu/.my.cnf
+if [ ! -f "${BVF_TOOLS_DIR}/.my.cnf" ]; then
+    echo "${BVF_MYCNF}" > "${BVF_TOOLS_DIR}/.my.cnf";
 fi;
 
 # Mailcatcher
@@ -312,30 +317,36 @@ if [ ! -f "${BVF_ALIASES_FILE}" ]; then
 fi;
 
 # Inte Starter
-cd /home/ubuntu && git clone https://github.com/Darklg/InteStarter.git;
+cd "${BVF_TOOLS_DIR}" && git clone https://github.com/Darklg/InteStarter.git;
 if [ ! -f "${BVF_CONTROL_FILE}" ]; then
-    echo "alias newinte='. /home/ubuntu/InteStarter/newinte.sh';" >> "${BVF_ALIASES_FILE}";
+    echo "alias newinte='. ${BVF_TOOLS_DIR}/InteStarter/newinte.sh';" >> "${BVF_ALIASES_FILE}";
 fi;
 
 if [[ ${BVF_PROJECTHASMAGENTO} == '1' ]]; then
     # Magetools
-    cd /home/ubuntu && git clone https://github.com/Darklg/InteGentoMageTools.git;
+    cd "${BVF_TOOLS_DIR}" && git clone https://github.com/Darklg/InteGentoMageTools.git;
     if [ ! -f "${BVF_CONTROL_FILE}" ]; then
-        echo "alias magetools='. /home/ubuntu/InteGentoMageTools/magetools.sh';" >> "${BVF_ALIASES_FILE}";
+        echo "alias magetools='. ${BVF_TOOLS_DIR}/InteGentoMageTools/magetools.sh';" >> "${BVF_ALIASES_FILE}";
     fi;
+
+    # Magerun
+    wget https://files.magerun.net/n98-magerun.phar
+    sudo chmod +x n98-magerun.phar
+    sudo cp n98-magerun.phar /usr/local/bin/
+
 fi;
 
 if [[ ${BVF_PROJECTHASWORDPRESS} == '1' ]]; then
     # WP-Cli
-    cd /home/ubuntu && curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar;
+    cd "${BVF_TOOLS_DIR}" && curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar;
     chmod +x wp-cli.phar
     if [ ! -f "/usr/local/bin/wp" ]; then
         sudo mv wp-cli.phar /usr/local/bin/wp
     fi;
     # WPU Installer
-    cd /home/ubuntu && git clone https://github.com/WordPressUtilities/WPUInstaller.git;
+    cd "${BVF_TOOLS_DIR}" && git clone https://github.com/WordPressUtilities/WPUInstaller.git;
     if [ ! -f "${BVF_CONTROL_FILE}" ]; then
-        echo "alias wpuinstaller='. /home/ubuntu/WPUInstaller/start.sh';" >> "${BVF_ALIASES_FILE}";
+        echo "alias wpuinstaller='. ${BVF_TOOLS_DIR}/WPUInstaller/start.sh';" >> "${BVF_ALIASES_FILE}";
     fi;
 fi;
 
@@ -358,8 +369,8 @@ set show-all-if-ambiguous on
 set completion-ignore-case on
 EOF
 )
-if [ ! -f "/home/ubuntu/.inputrc" ]; then
-    echo "${BVF_INPUTRC}" > /home/ubuntu/.inputrc;
+if [ ! -f "${BVF_TOOLS_DIR}/.inputrc" ]; then
+    echo "${BVF_INPUTRC}" > "${BVF_TOOLS_DIR}/.inputrc";
 fi;
 
 echo '###################################';
