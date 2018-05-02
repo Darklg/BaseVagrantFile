@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.11.1
+# VagrantFile Bootstrap v 0.11.2
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.11.1';
+echo '## INSTALLING VagrantFile v 0.11.2';
 echo '###################################';
 
 # External config
@@ -74,9 +74,11 @@ sudo apt-get install -y build-essential libsqlite3-dev ruby-dev
 sudo gem install mailcatcher --no-rdoc --no-ri;
 
 # SSL certif
-cd "${BVF_ROOT_DIR}";
-openssl genrsa -out "${BVF_PROJECTNDD}".key 2048;
-openssl req -new -x509 -key "${BVF_PROJECTNDD}".key -out "${BVF_PROJECTNDD}".cert -days 3650 -subj /CN="${BVF_PROJECTNDD}";
+if [[ ${BVF_PROJECTUSEHTTPS} == '1' ]]; then
+    cd "${BVF_ROOT_DIR}";
+    openssl genrsa -out "${BVF_PROJECTNDD}".key 2048;
+    openssl req -new -x509 -key "${BVF_PROJECTNDD}".key -out "${BVF_PROJECTNDD}".cert -days 3650 -subj /CN="${BVF_PROJECTNDD}";
+fi;
 
 ###################################
 ## PHP & Apache/nginx & MySQL
@@ -334,6 +336,11 @@ if [[ ${BVF_PROJECTHASMAGENTO} == '1' ]]; then
     sudo chmod +x n98-magerun.phar
     sudo cp n98-magerun.phar /usr/local/bin/
 
+    # local xml
+    if [ -f "${BVF_ROOT_DIR}/local.xml" ] && [ -d "${BVF_HTDOCS_DIR}/app/etc" ] && [ ! -f "${BVF_HTDOCS_DIR}/app/etc/local.xml" ]; then
+        cp "${BVF_ROOT_DIR}/local.xml" "${BVF_HTDOCS_DIR}/app/etc/local.xml";
+    fi;
+
 fi;
 
 if [[ ${BVF_PROJECTHASWORDPRESS} == '1' ]]; then
@@ -343,11 +350,18 @@ if [[ ${BVF_PROJECTHASWORDPRESS} == '1' ]]; then
     if [ ! -f "/usr/local/bin/wp" ]; then
         sudo mv wp-cli.phar /usr/local/bin/wp
     fi;
+
     # WPU Installer
     cd "${BVF_TOOLS_DIR}" && git clone https://github.com/WordPressUtilities/WPUInstaller.git;
     if [ ! -f "${BVF_CONTROL_FILE}" ]; then
         echo "alias wpuinstaller='. ${BVF_TOOLS_DIR}/WPUInstaller/start.sh';" >> "${BVF_ALIASES_FILE}";
     fi;
+
+    # local config
+    if [ -f "${BVF_ROOT_DIR}/wp-config.php" ] [ ! -f "${BVF_HTDOCS_DIR}/wp-config.php" ]; then
+        cp "${BVF_ROOT_DIR}/wp-config.php" "${BVF_HTDOCS_DIR}/wp-config.php";
+    fi;
+
 fi;
 
 # Default folder

@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# VagrantFile Bootstrap v 0.11.1
+# VagrantFile Bootstrap v 0.11.2
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -15,7 +15,7 @@ VAGRANTFILE_MYPROJECT_HAS_WORDPRESS = "0"
 VAGRANTFILE_MYPROJECT_HAS_MAGENTO = "0"
 VAGRANTFILE_MYPROJECT_PHP_VERSION = "7.0"
 VAGRANTFILE_MYPROJECT_SERVER_TYPE = "apache"
-VAGRANTFILE_MYPROJECT_HTTPS = "1"
+VAGRANTFILE_MYPROJECT_HTTPS = "0"
 
 # Vagrantfile API/syntax version.
 VAGRANTFILE_API_VERSION = "2"
