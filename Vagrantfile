@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# VagrantFile Bootstrap v 0.11.2
+# VagrantFile Bootstrap v 0.11.3
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -33,8 +33,28 @@ VAGRANTFILE_ARGS = [
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
+  required_plugins = %w( vagrant-hostmanager vagrant-disksize )
+  _retry = false
+  required_plugins.each do |plugin|
+    unless Vagrant.has_plugin? plugin
+      system "vagrant plugin install #{plugin}"
+      _retry=true
+    end
+  end
+
+  if (_retry)
+    exec "vagrant " + ARGV.join(' ')
+  end
+
   # Every Vagrant virtual environment requires a box to build off of.
   config.vm.box = "ubuntu/xenial64"
+
+
+  # Every Vagrant virtual environment requires a box to build off of.
+  config.vm.box = "ubuntu/xenial64"
+
+  # Disk Size
+  config.disksize.size = '15GB'
 
   # Create a private network, which allows host-only access to the machine using a specific IP.
   config.vm.network "private_network", ip: VAGRANTFILE_MYPROJECT_IP

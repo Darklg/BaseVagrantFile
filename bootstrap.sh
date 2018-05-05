@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.11.2
+# VagrantFile Bootstrap v 0.11.3
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.11.2';
+echo '## INSTALLING VagrantFile v 0.11.3';
 echo '###################################';
 
 # External config
