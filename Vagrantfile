@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# VagrantFile Bootstrap v 0.11.3
+# VagrantFile Bootstrap v 0.11.4
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -11,6 +11,7 @@
 VAGRANTFILE_MYPROJECT_IP = "192.168.33.99"
 VAGRANTFILE_MYPROJECT_NAME = "mycoolproject"
 VAGRANTFILE_MYPROJECT_DOMAIN = "mycoolproject.test"
+VAGRANTFILE_MYPROJECT_DOMAINALIASES = ""
 VAGRANTFILE_MYPROJECT_HAS_WORDPRESS = "0"
 VAGRANTFILE_MYPROJECT_HAS_MAGENTO = "0"
 VAGRANTFILE_MYPROJECT_PHP_VERSION = "7.0"
@@ -28,7 +29,8 @@ VAGRANTFILE_ARGS = [
   VAGRANTFILE_MYPROJECT_HAS_MAGENTO,
   VAGRANTFILE_MYPROJECT_PHP_VERSION,
   VAGRANTFILE_MYPROJECT_SERVER_TYPE,
-  VAGRANTFILE_MYPROJECT_HTTPS
+  VAGRANTFILE_MYPROJECT_HTTPS,
+  VAGRANTFILE_MYPROJECT_DOMAINALIASES
 ]
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
@@ -82,5 +84,7 @@ SHELL
   config.vm.hostname = VAGRANTFILE_MYPROJECT_DOMAIN
   config.hostmanager.enabled = true
   config.hostmanager.manage_host = true
-
+  if not VAGRANTFILE_MYPROJECT_DOMAINALIASES.empty?
+    config.hostmanager.aliases = VAGRANTFILE_MYPROJECT_DOMAINALIASES.split
+  end
 end
