@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# VagrantFile Bootstrap v 0.11.4
+# VagrantFile Bootstrap v 0.11.5
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -51,10 +51,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # Every Vagrant virtual environment requires a box to build off of.
   config.vm.box = "ubuntu/xenial64"
 
-
-  # Every Vagrant virtual environment requires a box to build off of.
-  config.vm.box = "ubuntu/xenial64"
-
   # Disk Size
   config.disksize.size = '15GB'
 
@@ -63,7 +59,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # Share an additional folder to the guest VM. The first argument is the path on the host to the actual folder.
   # The second argument is the path on the guest to mount the folder.
-  config.vm.synced_folder "./", "/var/www/html", :mount_options => ["dmode=777,fmode=666"]
+  config.vm.synced_folder "./", "/var/www/html", type: "nfs", :mount_options => ['rw', 'vers=3', 'tcp'], :linux__nfs_options => ['async']
 
   # Define the bootstrap file: A (shell) script that runs after first setup of your box (= provisioning)
   config.vm.provision :shell, path: "https://raw.githubusercontent.com/Darklg/BaseVagrantFile/master/bootstrap.sh", :args => VAGRANTFILE_ARGS
