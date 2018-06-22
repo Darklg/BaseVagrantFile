@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.11.5
+# VagrantFile Bootstrap v 0.12.0
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.11.5';
+echo '## INSTALLING VagrantFile v 0.12.0';
 echo '###################################';
 
 # External config
@@ -105,7 +105,7 @@ else
     sudo apt-get install -y nginx
     sudo apt-get install -y php${BVF_PROJECTPHPVERSION}-fpm
 fi;
-sudo apt-get install -y php${BVF_PROJECTPHPVERSION}-common php${BVF_PROJECTPHPVERSION}-dev php${BVF_PROJECTPHPVERSION}-json php${BVF_PROJECTPHPVERSION}-opcache php${BVF_PROJECTPHPVERSION}-cli php${BVF_PROJECTPHPVERSION} php${BVF_PROJECTPHPVERSION}-mysql php${BVF_PROJECTPHPVERSION}-fpm php${BVF_PROJECTPHPVERSION}-curl php${BVF_PROJECTPHPVERSION}-gd php${BVF_PROJECTPHPVERSION}-mcrypt php${BVF_PROJECTPHPVERSION}-mbstring php${BVF_PROJECTPHPVERSION}-bcmath php${BVF_PROJECTPHPVERSION}-zip php${BVF_PROJECTPHPVERSION}-xml
+sudo apt-get install -y php${BVF_PROJECTPHPVERSION}-common php${BVF_PROJECTPHPVERSION}-dev php${BVF_PROJECTPHPVERSION}-json php${BVF_PROJECTPHPVERSION}-opcache php${BVF_PROJECTPHPVERSION}-cli php${BVF_PROJECTPHPVERSION} php${BVF_PROJECTPHPVERSION}-mysql php${BVF_PROJECTPHPVERSION}-fpm php${BVF_PROJECTPHPVERSION}-curl php${BVF_PROJECTPHPVERSION}-gd php${BVF_PROJECTPHPVERSION}-mcrypt php${BVF_PROJECTPHPVERSION}-mbstring php${BVF_PROJECTPHPVERSION}-bcmath php${BVF_PROJECTPHPVERSION}-zip php${BVF_PROJECTPHPVERSION}-xml php${BVF_PROJECTPHPVERSION}-intl
 sudo apt-get install -y php-memcached
 sudo apt-get install -y redis-server php${BVF_PROJECTPHPVERSION}-redis
 
@@ -198,6 +198,25 @@ touch ${BVF_SERVER_ERRORLOG};
 chmod 0777 ${BVF_SERVER_ACCESSLOG};
 chmod 0777 ${BVF_SERVER_ERRORLOG};
 
+BVF_NGINX_PHPMYADMIN=$(cat <<EOF
+location /phpmyadmin {
+    root /usr/share/;
+    index index.php;
+    try_files \$uri \$uri/ =404;
+
+    location ~ ^/phpmyadmin/(doc|sql|setup)/ {
+        deny all;
+    }
+
+    location ~ /phpmyadmin/(.+\.php)\$ {
+        fastcgi_pass unix:/run/php/php${BVF_PROJECTPHPVERSION}-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+        include fastcgi_params;
+        include snippets/fastcgi-php.conf;
+    }
+}
+EOF
+);
 
 if [[ ${BVF_PROJECTSERVERTYPE} == 'nginx' ]]; then
     # Virtual host
@@ -225,25 +244,49 @@ server {
         include /etc/nginx/fastcgi_params;
     }
 
-    location /phpmyadmin {
-        root /usr/share/;
-        index index.php;
-        try_files \$uri \$uri/ =404;
+    ${BVF_NGINX_PHPMYADMIN}
 
-        location ~ ^/phpmyadmin/(doc|sql|setup)/ {
-            deny all;
-        }
-
-        location ~ /phpmyadmin/(.+\.php)\$ {
-            fastcgi_pass unix:/run/php/php${BVF_PROJECTPHPVERSION}-fpm.sock;
-            fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-            include fastcgi_params;
-            include snippets/fastcgi-php.conf;
-        }
-    }
 }
 EOF
 );
+
+if [[ ${BVF_PROJECTHASMAGENTO} == '2' ]]; then
+    BVF_VHOST=$(cat <<EOF
+upstream fastcgi_backend {
+    server unix:/var/run/php/php7.0-fpm.sock;
+}
+
+server {
+    listen 80;
+    server_name ${BVF_PROJECTNDD};
+
+    set $MAGE_ROOT ${BVF_HTDOCS_DIR};
+    set $MAGE_MODE developer;
+    set $MAGE_RUN_TYPE website;
+    include ${BVF_HTDOCS_DIR}/nginx.conf.sample;
+
+    access_log ${BVF_SERVER_ACCESSLOG};
+    error_log ${BVF_SERVER_ERRORLOG};
+
+    location / {
+        try_files \$uri \$uri/ /index.php?\$args;
+    }
+
+    location ~ \.php\$ {
+        try_files \$uri =404;
+        fastcgi_index index.php;
+        fastcgi_pass unix:/run/php/php${BVF_PROJECTPHPVERSION}-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+        include /etc/nginx/fastcgi_params;
+    }
+
+    ${BVF_NGINX_PHPMYADMIN}
+
+}
+EOF
+);
+fi;
+
     echo "${BVF_VHOST}" > /etc/nginx/sites-available/default
 
     # Restart
@@ -324,7 +367,7 @@ if [ ! -f "${BVF_CONTROL_FILE}" ]; then
     echo "alias newinte='. ${BVF_TOOLS_DIR}/InteStarter/newinte.sh';" >> "${BVF_ALIASES_FILE}";
 fi;
 
-if [[ ${BVF_PROJECTHASMAGENTO} == '1' ]]; then
+if [[ ${BVF_PROJECTHASMAGENTO} == '1' ]] || [[ ${BVF_PROJECTHASMAGENTO} == '2' ]]; then
     # Magetools
     cd "${BVF_TOOLS_DIR}" && git clone https://github.com/Darklg/InteGentoMageTools.git;
     if [ ! -f "${BVF_CONTROL_FILE}" ]; then
@@ -332,9 +375,16 @@ if [[ ${BVF_PROJECTHASMAGENTO} == '1' ]]; then
     fi;
 
     # Magerun
-    wget https://files.magerun.net/n98-magerun.phar
-    sudo chmod +x n98-magerun.phar
-    sudo cp n98-magerun.phar /usr/local/bin/
+    if [[ ${BVF_PROJECTHASMAGENTO} == '1' ]]; then
+        wget https://files.magerun.net/n98-magerun.phar
+        sudo chmod +x n98-magerun.phar
+        sudo cp n98-magerun.phar /usr/local/bin/
+    fi;
+    if [[ ${BVF_PROJECTHASMAGENTO} == '2' ]]; then
+        wget https://files.magerun.net/n98-magerun2.phar
+        sudo chmod +x n98-magerun2.phar
+        sudo cp n98-magerun2.phar /usr/local/bin/
+    fi;
 
     # local xml
     if [ -f "${BVF_ROOT_DIR}/local.xml" ] && [ -d "${BVF_HTDOCS_DIR}/app/etc" ] && [ ! -f "${BVF_HTDOCS_DIR}/app/etc/local.xml" ]; then
@@ -355,6 +405,12 @@ if [[ ${BVF_PROJECTHASWORDPRESS} == '1' ]]; then
     cd "${BVF_TOOLS_DIR}" && git clone https://github.com/WordPressUtilities/WPUInstaller.git;
     if [ ! -f "${BVF_CONTROL_FILE}" ]; then
         echo "alias wpuinstaller='. ${BVF_TOOLS_DIR}/WPUInstaller/start.sh';" >> "${BVF_ALIASES_FILE}";
+    fi;
+
+    # WPU Entity Creator
+    cd "${BVF_TOOLS_DIR}" && git clone https://github.com/WordPressUtilities/wpuentitycreator.git;
+    if [ ! -f "${BVF_CONTROL_FILE}" ]; then
+        echo "alias wpuentitycreator='. ${BVF_TOOLS_DIR}/wpuentitycreator/wpuentitycreator.sh';" >> "${BVF_ALIASES_FILE}";
     fi;
 
     # local config
