@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.12.0
+# VagrantFile Bootstrap v 0.12.1
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.12.0';
+echo '## INSTALLING VagrantFile v 0.12.1';
 echo '###################################';
 
 # External config
@@ -67,10 +67,19 @@ sudo apt-get update
 sudo apt-get -y upgrade
 
 # Tools
-sudo apt-get install -y vim htop curl git sendmail git-core
+sudo apt-get install -y \
+    vim \
+    htop \
+    curl \
+    sendmail \
+    git \
+    git-core;
 
 # Ruby
-sudo apt-get install -y build-essential libsqlite3-dev ruby-dev
+sudo apt-get install -y \
+    build-essential \
+    libsqlite3-dev \
+    ruby-dev;
 sudo gem install mailcatcher --no-rdoc --no-ri;
 
 # SSL certif
@@ -99,15 +108,34 @@ fi;
 # Install
 sudo apt-get install -y mysql-server
 if [[ ${BVF_PROJECTSERVERTYPE} == 'apache' ]]; then
-    sudo apt-get install -y apache2
-    sudo apt-get install -y libapache2-mod-php${BVF_PROJECTPHPVERSION}
+    sudo apt-get install -y \
+        apache2 \
+        libapache2-mod-php${BVF_PROJECTPHPVERSION};
 else
-    sudo apt-get install -y nginx
-    sudo apt-get install -y php${BVF_PROJECTPHPVERSION}-fpm
+    sudo apt-get install -y \
+        nginx \
+        php${BVF_PROJECTPHPVERSION}-fpm;
 fi;
-sudo apt-get install -y php${BVF_PROJECTPHPVERSION}-common php${BVF_PROJECTPHPVERSION}-dev php${BVF_PROJECTPHPVERSION}-json php${BVF_PROJECTPHPVERSION}-opcache php${BVF_PROJECTPHPVERSION}-cli php${BVF_PROJECTPHPVERSION} php${BVF_PROJECTPHPVERSION}-mysql php${BVF_PROJECTPHPVERSION}-fpm php${BVF_PROJECTPHPVERSION}-curl php${BVF_PROJECTPHPVERSION}-gd php${BVF_PROJECTPHPVERSION}-mcrypt php${BVF_PROJECTPHPVERSION}-mbstring php${BVF_PROJECTPHPVERSION}-bcmath php${BVF_PROJECTPHPVERSION}-zip php${BVF_PROJECTPHPVERSION}-xml php${BVF_PROJECTPHPVERSION}-intl
-sudo apt-get install -y php-memcached
-sudo apt-get install -y redis-server php${BVF_PROJECTPHPVERSION}-redis
+sudo apt-get install -y \
+    php${BVF_PROJECTPHPVERSION} \
+    php${BVF_PROJECTPHPVERSION}-common  \
+    php${BVF_PROJECTPHPVERSION}-cli  \
+    php${BVF_PROJECTPHPVERSION}-dev  \
+    php${BVF_PROJECTPHPVERSION}-json  \
+    php${BVF_PROJECTPHPVERSION}-opcache  \
+    php${BVF_PROJECTPHPVERSION}-mysql  \
+    php${BVF_PROJECTPHPVERSION}-fpm  \
+    php${BVF_PROJECTPHPVERSION}-curl  \
+    php${BVF_PROJECTPHPVERSION}-gd  \
+    php${BVF_PROJECTPHPVERSION}-mcrypt  \
+    php${BVF_PROJECTPHPVERSION}-mbstring  \
+    php${BVF_PROJECTPHPVERSION}-bcmath  \
+    php${BVF_PROJECTPHPVERSION}-zip  \
+    php${BVF_PROJECTPHPVERSION}-xml  \
+    php${BVF_PROJECTPHPVERSION}-intl \
+    php-memcached \
+    redis-server \
+    php${BVF_PROJECTPHPVERSION}-redis;
 
 # Apache
 if [[ ${BVF_PROJECTSERVERTYPE} == 'apache' ]]; then
@@ -218,19 +246,24 @@ location /phpmyadmin {
 EOF
 );
 
+
+BVF_NGINX_SERVER=$(cat <<EOF
+listen 80;
+server_name ${BVF_PROJECTNDD};
+access_log ${BVF_SERVER_ACCESSLOG};
+error_log ${BVF_SERVER_ERRORLOG};
+EOF
+);
+
 if [[ ${BVF_PROJECTSERVERTYPE} == 'nginx' ]]; then
     # Virtual host
     BVF_VHOST=$(cat <<EOF
 server {
-    listen 80;
-    server_name ${BVF_PROJECTNDD};
+    ${BVF_NGINX_SERVER}
 
     root ${BVF_HTDOCS_DIR};
 
     index index.php index.html;
-
-    access_log ${BVF_SERVER_ACCESSLOG};
-    error_log ${BVF_SERVER_ERRORLOG};
 
     location / {
         try_files \$uri \$uri/ /index.php?\$args;
@@ -257,28 +290,12 @@ upstream fastcgi_backend {
 }
 
 server {
-    listen 80;
-    server_name ${BVF_PROJECTNDD};
+    ${BVF_NGINX_SERVER}
 
     set $MAGE_ROOT ${BVF_HTDOCS_DIR};
     set $MAGE_MODE developer;
     set $MAGE_RUN_TYPE website;
     include ${BVF_HTDOCS_DIR}/nginx.conf.sample;
-
-    access_log ${BVF_SERVER_ACCESSLOG};
-    error_log ${BVF_SERVER_ERRORLOG};
-
-    location / {
-        try_files \$uri \$uri/ /index.php?\$args;
-    }
-
-    location ~ \.php\$ {
-        try_files \$uri =404;
-        fastcgi_index index.php;
-        fastcgi_pass unix:/run/php/php${BVF_PROJECTPHPVERSION}-fpm.sock;
-        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-        include /etc/nginx/fastcgi_params;
-    }
 
     ${BVF_NGINX_PHPMYADMIN}
 
