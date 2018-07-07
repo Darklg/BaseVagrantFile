@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# VagrantFile Bootstrap v 0.12.1
+# VagrantFile Bootstrap v 0.13.0
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -50,6 +50,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # Every Vagrant virtual environment requires a box to build off of.
   config.vm.box = "ubuntu/xenial64"
+
+  # Box modifications
+  config.vm.provider "virtualbox" do |vb|
+     vb.name = VAGRANTFILE_MYPROJECT_NAME
+     vb.memory = 1024
+  end
 
   # Disk Size
   config.disksize.size = '15GB'

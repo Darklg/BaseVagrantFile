@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.12.1
+# VagrantFile Bootstrap v 0.13.0
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.12.1';
+echo '## INSTALLING VagrantFile v 0.13.0';
 echo '###################################';
 
 # External config
@@ -41,6 +41,7 @@ BVF_HTDOCS_DIR="${BVF_ROOT_DIR}/htdocs";
 BVF_LOGS_DIR="${BVF_ROOT_DIR}/logs";
 BVF_CONTROL_FILE="/var/www/.basevagrantfile";
 BVF_ALIASES_FILE="${BVF_TOOLS_DIR}/.bash_aliases";
+BVF_INPUTRC_FILE="${BVF_TOOLS_DIR}/.inputrc";
 
 BVF_PHPINI_FILE="/etc/php/${BVF_PROJECTPHPVERSION}/apache2/php.ini";
 if [[ ${BVF_PROJECTSERVERTYPE} == 'nginx' ]]; then
@@ -156,6 +157,7 @@ mysql -uroot -proot -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 
 mysql -uroot -proot -e "SET GLOBAL show_compatibility_56 = ON;";
 # - Create db
 mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS ${BVF_PROJECTNAME}";
+
 # - Import first .sql file available
 for dbfile in `ls ${BVF_ROOT_DIR}/*.sql 2>/dev/null`; do
     if [[ -f "${dbfile}" ]]; then
@@ -379,14 +381,14 @@ if [ ! -f "${BVF_ALIASES_FILE}" ]; then
 fi;
 
 # Inte Starter
-cd "${BVF_TOOLS_DIR}" && git clone https://github.com/Darklg/InteStarter.git;
+cd "${BVF_TOOLS_DIR}" && git clone --depth 1 https://github.com/Darklg/InteStarter.git;
 if [ ! -f "${BVF_CONTROL_FILE}" ]; then
     echo "alias newinte='. ${BVF_TOOLS_DIR}/InteStarter/newinte.sh';" >> "${BVF_ALIASES_FILE}";
 fi;
 
 if [[ ${BVF_PROJECTHASMAGENTO} == '1' ]] || [[ ${BVF_PROJECTHASMAGENTO} == '2' ]]; then
     # Magetools
-    cd "${BVF_TOOLS_DIR}" && git clone https://github.com/Darklg/InteGentoMageTools.git;
+    cd "${BVF_TOOLS_DIR}" && git clone --depth 1 https://github.com/Darklg/InteGentoMageTools.git;
     if [ ! -f "${BVF_CONTROL_FILE}" ]; then
         echo "alias magetools='. ${BVF_TOOLS_DIR}/InteGentoMageTools/magetools.sh';" >> "${BVF_ALIASES_FILE}";
     fi;
@@ -419,13 +421,13 @@ if [[ ${BVF_PROJECTHASWORDPRESS} == '1' ]]; then
     fi;
 
     # WPU Installer
-    cd "${BVF_TOOLS_DIR}" && git clone https://github.com/WordPressUtilities/WPUInstaller.git;
+    cd "${BVF_TOOLS_DIR}" && git clone --depth 1 https://github.com/WordPressUtilities/WPUInstaller.git;
     if [ ! -f "${BVF_CONTROL_FILE}" ]; then
         echo "alias wpuinstaller='. ${BVF_TOOLS_DIR}/WPUInstaller/start.sh';" >> "${BVF_ALIASES_FILE}";
     fi;
 
     # WPU Entity Creator
-    cd "${BVF_TOOLS_DIR}" && git clone https://github.com/WordPressUtilities/wpuentitycreator.git;
+    cd "${BVF_TOOLS_DIR}" && git clone --depth 1 https://github.com/WordPressUtilities/wpuentitycreator.git;
     if [ ! -f "${BVF_CONTROL_FILE}" ]; then
         echo "alias wpuentitycreator='. ${BVF_TOOLS_DIR}/wpuentitycreator/wpuentitycreator.sh';" >> "${BVF_ALIASES_FILE}";
     fi;
@@ -437,15 +439,17 @@ if [[ ${BVF_PROJECTHASWORDPRESS} == '1' ]]; then
 
 fi;
 
-# Default folder
+## Common aliases
 if [ ! -f "${BVF_CONTROL_FILE}" ]; then
+    # Default folder
     echo "cd ${BVF_HTDOCS_DIR} >& /dev/null" >> "${BVF_ALIASES_FILE}";
+    # Aliases
+    echo "alias ht='cd ${BVF_HTDOCS_DIR}';" >> "${BVF_ALIASES_FILE}";
+    # Common aliases
+    echo "alias ..='cd .." >> "${BVF_ALIASES_FILE}";
+    echo "function mkdircd () { mkdir -p \"$@\" && cd \"$@\"; }" >> "${BVF_ALIASES_FILE}";
 fi;
 
-# Aliases
-if [ ! -f "${BVF_CONTROL_FILE}" ]; then
-    echo "alias ht='cd ${BVF_HTDOCS_DIR}';" >> "${BVF_ALIASES_FILE}";
-fi;
 sudo chmod 0755 "${BVF_ALIASES_FILE}";
 
 # Custom .inputrc
@@ -456,8 +460,8 @@ set show-all-if-ambiguous on
 set completion-ignore-case on
 EOF
 )
-if [ ! -f "${BVF_TOOLS_DIR}/.inputrc" ]; then
-    echo "${BVF_INPUTRC}" > "${BVF_TOOLS_DIR}/.inputrc";
+if [ ! -f "${BVF_INPUTRC_FILE}" ]; then
+    echo "${BVF_INPUTRC}" > "${BVF_INPUTRC_FILE}";
 fi;
 
 echo '###################################';
