@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# VagrantFile Bootstrap v 0.13.0
+# VagrantFile Bootstrap v 0.14.0
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -17,6 +17,7 @@ VAGRANTFILE_MYPROJECT_HAS_MAGENTO = "0"
 VAGRANTFILE_MYPROJECT_PHP_VERSION = "7.0"
 VAGRANTFILE_MYPROJECT_SERVER_TYPE = "apache"
 VAGRANTFILE_MYPROJECT_HTTPS = "0"
+VAGRANTFILE_MYPROJECT_REPO = ""
 
 # Vagrantfile API/syntax version.
 VAGRANTFILE_API_VERSION = "2"
@@ -30,7 +31,8 @@ VAGRANTFILE_ARGS = [
   VAGRANTFILE_MYPROJECT_PHP_VERSION,
   VAGRANTFILE_MYPROJECT_SERVER_TYPE,
   VAGRANTFILE_MYPROJECT_HTTPS,
-  VAGRANTFILE_MYPROJECT_DOMAINALIASES
+  VAGRANTFILE_MYPROJECT_DOMAINALIASES,
+  VAGRANTFILE_MYPROJECT_REPO
 ]
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
@@ -83,6 +85,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 SHELL
 
   # Hostname
+  config.ssh.forward_agent = true
   config.vm.hostname = VAGRANTFILE_MYPROJECT_DOMAIN
   config.hostmanager.enabled = true
   config.hostmanager.manage_host = true

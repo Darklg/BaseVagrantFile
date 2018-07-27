@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.13.0
+# VagrantFile Bootstrap v 0.14.0
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.13.0';
+echo '## INSTALLING VagrantFile v 0.14.0';
 echo '###################################';
 
 # External config
@@ -32,6 +32,10 @@ fi
 BVF_PROJECTUSEHTTPS="${7}";
 if [ -z "${BVF_PROJECTUSEHTTPS}" ]; then
     BVF_PROJECTUSEHTTPS="0";
+fi
+BVF_PROJECTREPO="${9}";
+if [ -z "${BVF_PROJECTREPO}" ]; then
+    BVF_PROJECTREPO="";
 fi
 
 # Internal config
@@ -197,7 +201,6 @@ fi;
 # Project folder
 if [ ! -d "${BVF_HTDOCS_DIR}" ]; then
     sudo mkdir "${BVF_HTDOCS_DIR}";
-    echo "<?php phpinfo(); " > "${BVF_HTDOCS_DIR}/index.php";
 fi
 
 # PHPMyAdmin
@@ -446,8 +449,29 @@ if [ ! -f "${BVF_CONTROL_FILE}" ]; then
     # Aliases
     echo "alias ht='cd ${BVF_HTDOCS_DIR}';" >> "${BVF_ALIASES_FILE}";
     # Common aliases
-    echo "alias ..='cd .." >> "${BVF_ALIASES_FILE}";
-    echo "function mkdircd () { mkdir -p \"$@\" && cd \"$@\"; }" >> "${BVF_ALIASES_FILE}";
+    echo "alias ..='cd ..';" >> "${BVF_ALIASES_FILE}";
+    echo "function mkdircd () { mkdir -p \"\$@\" && cd \"\$@\"; }" >> "${BVF_ALIASES_FILE}";
+fi;
+
+## Project folder init
+if [ "${BVF_PROJECTREPO}test" == "test" ];then
+    # Basic phpinfo
+    BVF_INSTALLER='';
+    echo "<?php phpinfo(); " > "${BVF_HTDOCS_DIR}/index.php";
+else
+    # Installer for project
+    BVF_INSTALLER=$(cat <<EOF
+if [ ! -d "${BVF_HTDOCS_DIR}" ]; then
+    cd ${BVF_ROOT_DIR};
+    git clone ${BVF_PROJECTREPO} ${BVF_HTDOCS_DIR};
+    cd ${BVF_HTDOCS_DIR};
+    git submodule update --init --recursive;
+fi
+EOF
+);
+    rm -rf "${BVF_HTDOCS_DIR}";
+    echo "${BVF_INSTALLER}" >> "/home/ubuntu/installer.sh";
+    echo "/bin/bash /home/ubuntu/installer.sh" >> "${BVF_ALIASES_FILE}";
 fi;
 
 sudo chmod 0755 "${BVF_ALIASES_FILE}";
@@ -466,6 +490,11 @@ fi;
 
 echo '###################################';
 echo '## VAGRANT BOX IS INSTALLED';
+if [ -n "${BVF_INSTALLER}" ];then
+    echo '## INSTALL PROJECT :';
+    echo '## - ssh-add -k';
+    echo '## - vagrant ssh';
+fi;
 echo '###################################';
 
 touch "${BVF_CONTROL_FILE}";
