@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.14.0
+# VagrantFile Bootstrap v 0.15.0
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.14.0';
+echo '## INSTALLING VagrantFile v 0.15.0';
 echo '###################################';
 
 # External config
@@ -163,7 +163,7 @@ mysql -uroot -proot -e "SET GLOBAL show_compatibility_56 = ON;";
 mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS ${BVF_PROJECTNAME}";
 
 # - Import first .sql file available
-for dbfile in `ls ${BVF_ROOT_DIR}/*.sql 2>/dev/null`; do
+for dbfile in `ls ${BVF_ROOT_DIR}/*.sql ${BVF_ROOT_DIR}/*.sql.gz 2>/dev/null`; do
     if [[ -f "${dbfile}" ]]; then
         mysql -uroot -proot ${BVF_PROJECTNAME} < "${dbfile}";
         break;
@@ -461,17 +461,42 @@ if [ "${BVF_PROJECTREPO}test" == "test" ];then
 else
     # Installer for project
     BVF_INSTALLER=$(cat <<EOF
+#!/bin/bash
 if [ ! -d "${BVF_HTDOCS_DIR}" ]; then
     cd ${BVF_ROOT_DIR};
     git clone ${BVF_PROJECTREPO} ${BVF_HTDOCS_DIR};
     cd ${BVF_HTDOCS_DIR};
     git submodule update --init --recursive;
-fi
+fi;
 EOF
 );
-    rm -rf "${BVF_HTDOCS_DIR}";
-    echo "${BVF_INSTALLER}" >> "/home/ubuntu/installer.sh";
-    echo "/bin/bash /home/ubuntu/installer.sh" >> "${BVF_ALIASES_FILE}";
+    if [ ! -f "${BVF_TOOLS_DIR}/installer.sh" ]; then
+        rm -rf "${BVF_HTDOCS_DIR}";
+        echo "${BVF_INSTALLER}" >> "${BVF_TOOLS_DIR}/installer.sh";
+        echo "/bin/bash ${BVF_TOOLS_DIR}/installer.sh" >> "${BVF_ALIASES_FILE}";
+    fi;
+fi;
+
+## Backup file
+if [ ! -f "${BVF_TOOLS_DIR}/backup.sh" ]; then
+    BVF_BACKUP=$(cat <<EOF
+#!/bin/bash
+
+echo "# DUMP DATABASE";
+mysqldump -u root -proot ${BVF_PROJECTNAME} > ${BVF_ROOT_DIR}/backup.sql;
+gzip -v  ${BVF_ROOT_DIR}/backup.sql ;
+
+echo "# DUMP CONFIG FILES";
+if [ -f "${BVF_HTDOCS_DIR}/wp-config.php" ]; then
+    cp "${BVF_HTDOCS_DIR}/wp-config.php" "${BVF_ROOT_DIR}/wp-config.php";
+fi;
+if [ -f "${BVF_HTDOCS_DIR}/app/etc/local.xml" ]; then
+    cp "${BVF_HTDOCS_DIR}/app/etc/local.xml" "${BVF_ROOT_DIR}/local.xml";
+fi;
+EOF
+);
+    echo "${BVF_BACKUP}" >> "${BVF_TOOLS_DIR}/backup.sh";
+    echo "alias backupnow='/bin/bash ${BVF_TOOLS_DIR}/backup.sh';" >> "${BVF_ALIASES_FILE}";
 fi;
 
 sudo chmod 0755 "${BVF_ALIASES_FILE}";
