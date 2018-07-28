@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.15.0
+# VagrantFile Bootstrap v 0.15.1
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.15.0';
+echo '## INSTALLING VagrantFile v 0.15.1';
 echo '###################################';
 
 # External config
@@ -436,7 +436,7 @@ if [[ ${BVF_PROJECTHASWORDPRESS} == '1' ]]; then
     fi;
 
     # local config
-    if [ -f "${BVF_ROOT_DIR}/wp-config.php" ] [ ! -f "${BVF_HTDOCS_DIR}/wp-config.php" ]; then
+    if [ -f "${BVF_ROOT_DIR}/wp-config.php" ] && [ ! -f "${BVF_HTDOCS_DIR}/wp-config.php" ]; then
         cp "${BVF_ROOT_DIR}/wp-config.php" "${BVF_HTDOCS_DIR}/wp-config.php";
     fi;
 
@@ -457,7 +457,9 @@ fi;
 if [ "${BVF_PROJECTREPO}test" == "test" ];then
     # Basic phpinfo
     BVF_INSTALLER='';
-    echo "<?php phpinfo(); " > "${BVF_HTDOCS_DIR}/index.php";
+    if [ ! -f "${BVF_HTDOCS_DIR}/index.php" ]; then
+        echo "<?php phpinfo(); " > "${BVF_HTDOCS_DIR}/index.php";
+    fi;
 else
     # Installer for project
     BVF_INSTALLER=$(cat <<EOF
