@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.15.1
+# VagrantFile Bootstrap v 0.16.0
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.15.1';
+echo '## INSTALLING VagrantFile v 0.16.0';
 echo '###################################';
 
 # External config
@@ -304,6 +304,32 @@ server {
 
     ${BVF_NGINX_PHPMYADMIN}
 
+}
+EOF
+);
+fi;
+
+if [[ ${BVF_PROJECTUSEHTTPS} == '1' ]]; then
+    BVF_VHOST=$(cat <<EOF
+${BVF_VHOST}
+
+server {
+    listen 443 ssl;
+    server_name ${BVF_PROJECTNDD};
+    ssl_certificate ${BVF_ROOT_DIR}/${BVF_PROJECTNDD}.cert;
+    ssl_certificate_key ${BVF_ROOT_DIR}/${BVF_PROJECTNDD}.key;
+    ssl on;
+    location / {
+        proxy_pass         http://127.0.0.1/;
+        proxy_redirect     off;
+        access_log         off;
+        proxy_pass_header  Set-Cookie;
+        proxy_set_header   Host             \$host;
+        proxy_set_header   X-Real-IP        \$remote_addr;
+        proxy_set_header   X-Forwarded-For  \$proxy_add_x_forwarded_for;
+        proxy_cache_valid 200 302 10m;
+        proxy_cache_valid 404      1m;
+    }
 }
 EOF
 );
