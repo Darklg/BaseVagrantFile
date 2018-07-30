@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.16.0
+# VagrantFile Bootstrap v 0.16.1
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.16.0';
+echo '## INSTALLING VagrantFile v 0.16.1';
 echo '###################################';
 
 # External config
@@ -48,7 +48,7 @@ BVF_ALIASES_FILE="${BVF_TOOLS_DIR}/.bash_aliases";
 BVF_INPUTRC_FILE="${BVF_TOOLS_DIR}/.inputrc";
 
 BVF_PHPINI_FILE="/etc/php/${BVF_PROJECTPHPVERSION}/apache2/php.ini";
-if [[ ${BVF_PROJECTSERVERTYPE} == 'nginx' ]]; then
+if [[ "${BVF_PROJECTSERVERTYPE}" == 'nginx' ]]; then
     BVF_PHPINI_FILE="/etc/php/${BVF_PROJECTPHPVERSION}/fpm/php.ini";
 fi;
 
@@ -123,23 +123,25 @@ else
 fi;
 sudo apt-get install -y \
     php${BVF_PROJECTPHPVERSION} \
-    php${BVF_PROJECTPHPVERSION}-common  \
-    php${BVF_PROJECTPHPVERSION}-cli  \
-    php${BVF_PROJECTPHPVERSION}-dev  \
-    php${BVF_PROJECTPHPVERSION}-json  \
-    php${BVF_PROJECTPHPVERSION}-opcache  \
-    php${BVF_PROJECTPHPVERSION}-mysql  \
-    php${BVF_PROJECTPHPVERSION}-fpm  \
-    php${BVF_PROJECTPHPVERSION}-curl  \
-    php${BVF_PROJECTPHPVERSION}-gd  \
-    php${BVF_PROJECTPHPVERSION}-mcrypt  \
-    php${BVF_PROJECTPHPVERSION}-mbstring  \
-    php${BVF_PROJECTPHPVERSION}-bcmath  \
-    php${BVF_PROJECTPHPVERSION}-zip  \
-    php${BVF_PROJECTPHPVERSION}-xml  \
+    php${BVF_PROJECTPHPVERSION}-common \
+    php${BVF_PROJECTPHPVERSION}-cli \
+    php${BVF_PROJECTPHPVERSION}-dev \
+    php${BVF_PROJECTPHPVERSION}-json \
+    php${BVF_PROJECTPHPVERSION}-opcache \
+    php${BVF_PROJECTPHPVERSION}-mysql \
+    php${BVF_PROJECTPHPVERSION}-fpm \
+    php${BVF_PROJECTPHPVERSION}-curl \
+    php${BVF_PROJECTPHPVERSION}-gd \
+    php${BVF_PROJECTPHPVERSION}-mcrypt \
+    php${BVF_PROJECTPHPVERSION}-mbstring \
+    php${BVF_PROJECTPHPVERSION}-bcmath \
+    php${BVF_PROJECTPHPVERSION}-zip \
+    php${BVF_PROJECTPHPVERSION}-soap \
+    php${BVF_PROJECTPHPVERSION}-xml \
     php${BVF_PROJECTPHPVERSION}-intl \
     php-memcached \
     redis-server \
+    composer \
     php${BVF_PROJECTPHPVERSION}-redis;
 
 # Apache
@@ -163,8 +165,12 @@ mysql -uroot -proot -e "SET GLOBAL show_compatibility_56 = ON;";
 mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS ${BVF_PROJECTNAME}";
 
 # - Import first .sql file available
-for dbfile in `ls ${BVF_ROOT_DIR}/*.sql ${BVF_ROOT_DIR}/*.sql.gz 2>/dev/null`; do
+for dbfile in `ls ${BVF_ROOT_DIR}/*.sql ${BVF_ROOT_DIR}/*.sql.gz ${BVF_ROOT_DIR}/*.sql.bz2 2>/dev/null`; do
     if [[ -f "${dbfile}" ]]; then
+        if [[ "${dbfile}" == *bz2 ]]; then
+            bzip2 -dk "${dbfile}";
+            dbfile="${dbfile/\.bz2/}";
+        fi;
         mysql -uroot -proot ${BVF_PROJECTNAME} < "${dbfile}";
         break;
     fi;
@@ -254,7 +260,7 @@ EOF
 
 BVF_NGINX_SERVER=$(cat <<EOF
 listen 80;
-server_name ${BVF_PROJECTNDD};
+server_name ${BVF_PROJECTNDD} ${BVF_PROJECTALIASES};
 access_log ${BVF_SERVER_ACCESSLOG};
 error_log ${BVF_SERVER_ERRORLOG};
 EOF
@@ -396,14 +402,6 @@ fi;
 ## Add tools
 ###################################
 
-# Composer
-curl -s https://getcomposer.org/installer | php
-if [ ! -f "/usr/local/bin/composer" ]; then
-    mv composer.phar /usr/local/bin/composer
-else
-    composer self-update;
-fi;
-
 # Aliases
 if [ ! -f "${BVF_ALIASES_FILE}" ]; then
     touch "${BVF_ALIASES_FILE}";
@@ -413,6 +411,11 @@ fi;
 cd "${BVF_TOOLS_DIR}" && git clone --depth 1 https://github.com/Darklg/InteStarter.git;
 if [ ! -f "${BVF_CONTROL_FILE}" ]; then
     echo "alias newinte='. ${BVF_TOOLS_DIR}/InteStarter/newinte.sh';" >> "${BVF_ALIASES_FILE}";
+fi;
+
+# auth json
+if [ -f "${BVF_ROOT_DIR}/auth.json" ] && [ ! -f "${BVF_HTDOCS_DIR}/auth.json" ]; then
+    cp "${BVF_ROOT_DIR}/auth.json" "${BVF_HTDOCS_DIR}/auth.json";
 fi;
 
 if [[ ${BVF_PROJECTHASMAGENTO} == '1' ]] || [[ ${BVF_PROJECTHASMAGENTO} == '2' ]]; then
@@ -438,7 +441,6 @@ if [[ ${BVF_PROJECTHASMAGENTO} == '1' ]] || [[ ${BVF_PROJECTHASMAGENTO} == '2' ]
     if [ -f "${BVF_ROOT_DIR}/local.xml" ] && [ -d "${BVF_HTDOCS_DIR}/app/etc" ] && [ ! -f "${BVF_HTDOCS_DIR}/app/etc/local.xml" ]; then
         cp "${BVF_ROOT_DIR}/local.xml" "${BVF_HTDOCS_DIR}/app/etc/local.xml";
     fi;
-
 fi;
 
 if [[ ${BVF_PROJECTHASWORDPRESS} == '1' ]]; then
@@ -495,6 +497,9 @@ if [ ! -d "${BVF_HTDOCS_DIR}" ]; then
     git clone ${BVF_PROJECTREPO} ${BVF_HTDOCS_DIR};
     cd ${BVF_HTDOCS_DIR};
     git submodule update --init --recursive;
+    if [ -f "${BVF_HTDOCS_DIR}/composer.json" ]; then
+        composer update;
+    fi;
 fi;
 EOF
 );
