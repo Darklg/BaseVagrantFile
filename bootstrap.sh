@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.16.1
+# VagrantFile Bootstrap v 0.16.2
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.16.1';
+echo '## INSTALLING VagrantFile v 0.16.2';
 echo '###################################';
 
 # External config
@@ -46,6 +46,7 @@ BVF_LOGS_DIR="${BVF_ROOT_DIR}/logs";
 BVF_CONTROL_FILE="/var/www/.basevagrantfile";
 BVF_ALIASES_FILE="${BVF_TOOLS_DIR}/.bash_aliases";
 BVF_INPUTRC_FILE="${BVF_TOOLS_DIR}/.inputrc";
+BVF_UPLOADMAX="32M";
 
 BVF_PHPINI_FILE="/etc/php/${BVF_PROJECTPHPVERSION}/apache2/php.ini";
 if [[ "${BVF_PROJECTSERVERTYPE}" == 'nginx' ]]; then
@@ -154,7 +155,8 @@ BVF_PHPERROR_LOG=$(sed 's/\//\\\//g' <<< "${BVF_LOGS_DIR}/php-error.log");
 sed -i "s/;error_log = .*/error_log = ${BVF_PHPERROR_LOG}/" ${BVF_PHPINI_FILE}
 sed -i "s/error_reporting = .*/error_reporting = E_ALL/" ${BVF_PHPINI_FILE}
 sed -i "s/display_errors = .*/display_errors = On/" ${BVF_PHPINI_FILE}
-sed -i "s/upload_max_filesize = .*/upload_max_filesize = 32M/" ${BVF_PHPINI_FILE}
+sed -i "s/upload_max_filesize = .*/upload_max_filesize = ${BVF_UPLOADMAX}/" ${BVF_PHPINI_FILE}
+sed -i "s/post_max_size = .*/post_max_size = ${BVF_UPLOADMAX}/" ${BVF_PHPINI_FILE}
 sudo phpenmod memcached
 
 # MySQL
@@ -263,6 +265,7 @@ listen 80;
 server_name ${BVF_PROJECTNDD} ${BVF_PROJECTALIASES};
 access_log ${BVF_SERVER_ACCESSLOG};
 error_log ${BVF_SERVER_ERRORLOG};
+client_max_body_size ${BVF_UPLOADMAX};
 EOF
 );
 
@@ -303,10 +306,10 @@ upstream fastcgi_backend {
 server {
     ${BVF_NGINX_SERVER}
 
-    set $MAGE_ROOT ${BVF_HTDOCS_DIR};
-    set $MAGE_MODE developer;
-    set $MAGE_RUN_TYPE website;
-    include ${BVF_HTDOCS_DIR}/nginx.conf.sample;
+    set \$MAGE_ROOT ${BVF_HTDOCS_DIR};
+    set \$MAGE_MODE developer;
+    set \$MAGE_RUN_TYPE website;
+    include ${BVF_HTDOCS_DIR}/nginx*.conf.sample;
 
     ${BVF_NGINX_PHPMYADMIN}
 
