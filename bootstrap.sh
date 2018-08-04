@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.16.2
+# VagrantFile Bootstrap v 0.16.3
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.16.2';
+echo '## INSTALLING VagrantFile v 0.16.3';
 echo '###################################';
 
 # External config
@@ -32,6 +32,10 @@ fi
 BVF_PROJECTUSEHTTPS="${7}";
 if [ -z "${BVF_PROJECTUSEHTTPS}" ]; then
     BVF_PROJECTUSEHTTPS="0";
+fi
+BVF_PROJECTALIASES="${8}";
+if [ -z "${BVF_PROJECTALIASES}" ]; then
+    BVF_PROJECTALIASES="";
 fi
 BVF_PROJECTREPO="${9}";
 if [ -z "${BVF_PROJECTREPO}" ]; then
@@ -143,7 +147,7 @@ sudo apt-get install -y \
     php-memcached \
     redis-server \
     composer \
-    php${BVF_PROJECTPHPVERSION}-redis;
+    php-redis;
 
 # Apache
 if [[ ${BVF_PROJECTSERVERTYPE} == 'apache' ]]; then
@@ -350,19 +354,30 @@ fi;
     sudo service nginx restart
 fi;
 
+BVF_APACHE_ALIAS="";
+if [ ! -z "${BVF_PROJECTALIASES}" ]; then
+    BVF_APACHE_ALIAS="ServerAlias ${BVF_PROJECTALIASES}";
+fi
+
+BVF_APACHE_SERVER=$(cat <<EOF
+ServerName ${BVF_PROJECTNDD}
+${BVF_APACHE_ALIAS}
+DocumentRoot "${BVF_HTDOCS_DIR}"
+CustomLog ${BVF_SERVER_ACCESSLOG} combined
+ErrorLog ${BVF_SERVER_ERRORLOG}
+<Directory "${BVF_HTDOCS_DIR}">
+    AllowOverride All
+    Require all granted
+</Directory>
+EOF
+);
+
 if [[ ${BVF_PROJECTSERVERTYPE} == 'apache' ]]; then
 
     # Virtual host
     BVF_VHOST=$(cat <<EOF
 <VirtualHost *:80>
-    ServerName ${BVF_PROJECTNDD}
-    DocumentRoot "${BVF_HTDOCS_DIR}"
-    CustomLog ${BVF_SERVER_ACCESSLOG} combined
-    ErrorLog ${BVF_SERVER_ERRORLOG}
-    <Directory "${BVF_HTDOCS_DIR}">
-        AllowOverride All
-        Require all granted
-    </Directory>
+    ${BVF_APACHE_SERVER}
 </VirtualHost>
 EOF
 );
@@ -372,22 +387,14 @@ if [[ ${BVF_PROJECTUSEHTTPS} == '1' ]]; then
     # Virtual host
     BVF_VHOST=$(cat <<EOF
 <VirtualHost *:443>
-    ServerName ${BVF_PROJECTNDD}
-    DocumentRoot "${BVF_HTDOCS_DIR}"
+    ${BVF_APACHE_SERVER}
     #adding custom SSL cert
     SSLEngine on
     SSLCertificateFile ${BVF_ROOT_DIR}/${BVF_PROJECTNDD}.cert
     SSLCertificateKeyFile ${BVF_ROOT_DIR}/${BVF_PROJECTNDD}.key
-    CustomLog ${BVF_SERVER_ACCESSLOG} combined
-    ErrorLog ${BVF_SERVER_ERRORLOG}
-    <Directory "${BVF_HTDOCS_DIR}">
-        AllowOverride All
-        Require all granted
-    </Directory>
 </VirtualHost>
 <VirtualHost *:80>
-    ServerName ${BVF_PROJECTNDD}
-    DocumentRoot "${BVF_HTDOCS_DIR}"
+    ${BVF_APACHE_SERVER}
     Redirect permanent / https://${BVF_PROJECTNDD}/
 </VirtualHost>
 EOF
