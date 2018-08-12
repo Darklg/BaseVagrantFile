@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.16.3
+# VagrantFile Bootstrap v 0.16.4
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.16.3';
+echo '## INSTALLING VagrantFile v 0.16.4';
 echo '###################################';
 
 # External config
@@ -51,6 +51,8 @@ BVF_CONTROL_FILE="/var/www/.basevagrantfile";
 BVF_ALIASES_FILE="${BVF_TOOLS_DIR}/.bash_aliases";
 BVF_INPUTRC_FILE="${BVF_TOOLS_DIR}/.inputrc";
 BVF_UPLOADMAX="32M";
+
+BVF_HTDOCS_FILES=(wp-config.php app/etc/local.xml app/etc/env.php auth.json);
 
 BVF_PHPINI_FILE="/etc/php/${BVF_PROJECTPHPVERSION}/apache2/php.ini";
 if [[ "${BVF_PROJECTSERVERTYPE}" == 'nginx' ]]; then
@@ -423,10 +425,6 @@ if [ ! -f "${BVF_CONTROL_FILE}" ]; then
     echo "alias newinte='. ${BVF_TOOLS_DIR}/InteStarter/newinte.sh';" >> "${BVF_ALIASES_FILE}";
 fi;
 
-# auth json
-if [ -f "${BVF_ROOT_DIR}/auth.json" ] && [ ! -f "${BVF_HTDOCS_DIR}/auth.json" ]; then
-    cp "${BVF_ROOT_DIR}/auth.json" "${BVF_HTDOCS_DIR}/auth.json";
-fi;
 
 if [[ ${BVF_PROJECTHASMAGENTO} == '1' ]] || [[ ${BVF_PROJECTHASMAGENTO} == '2' ]]; then
     # Magetools
@@ -447,10 +445,6 @@ if [[ ${BVF_PROJECTHASMAGENTO} == '1' ]] || [[ ${BVF_PROJECTHASMAGENTO} == '2' ]
         sudo cp n98-magerun2.phar /usr/local/bin/
     fi;
 
-    # local xml
-    if [ -f "${BVF_ROOT_DIR}/local.xml" ] && [ -d "${BVF_HTDOCS_DIR}/app/etc" ] && [ ! -f "${BVF_HTDOCS_DIR}/app/etc/local.xml" ]; then
-        cp "${BVF_ROOT_DIR}/local.xml" "${BVF_HTDOCS_DIR}/app/etc/local.xml";
-    fi;
 fi;
 
 if [[ ${BVF_PROJECTHASWORDPRESS} == '1' ]]; then
@@ -471,11 +465,6 @@ if [[ ${BVF_PROJECTHASWORDPRESS} == '1' ]]; then
     cd "${BVF_TOOLS_DIR}" && git clone --depth 1 https://github.com/WordPressUtilities/wpuentitycreator.git;
     if [ ! -f "${BVF_CONTROL_FILE}" ]; then
         echo "alias wpuentitycreator='. ${BVF_TOOLS_DIR}/wpuentitycreator/wpuentitycreator.sh';" >> "${BVF_ALIASES_FILE}";
-    fi;
-
-    # local config
-    if [ -f "${BVF_ROOT_DIR}/wp-config.php" ] && [ ! -f "${BVF_HTDOCS_DIR}/wp-config.php" ]; then
-        cp "${BVF_ROOT_DIR}/wp-config.php" "${BVF_HTDOCS_DIR}/wp-config.php";
     fi;
 
 fi;
@@ -503,10 +492,22 @@ else
     BVF_INSTALLER=$(cat <<EOF
 #!/bin/bash
 if [ ! -d "${BVF_HTDOCS_DIR}" ]; then
+    echo '## CLONE PROJECT';
     cd ${BVF_ROOT_DIR};
     git clone ${BVF_PROJECTREPO} ${BVF_HTDOCS_DIR};
-    cd ${BVF_HTDOCS_DIR};
     git submodule update --init --recursive;
+
+    echo '## RESTORE CONFIG FILES';
+    BVF_HTDOCS_FILES=(${BVF_HTDOCS_FILES[*]});
+    for BVF_BACKUP_FILE in \${BVF_HTDOCS_FILES[*]}; do
+        if [ ! -f "${BVF_HTDOCS_DIR}/\${BVF_BACKUP_FILE}" ]; then
+            BVF_BACKUP_FILENAME=\$(basename \${BVF_BACKUP_FILE});
+            cp "${BVF_ROOT_DIR}/\${BVF_BACKUP_FILENAME}" "${BVF_HTDOCS_DIR}/\${BVF_BACKUP_FILE}";
+        fi;
+    done;
+
+    echo '## COMPOSER UPDATE';
+    cd ${BVF_HTDOCS_DIR};
     if [ -f "${BVF_HTDOCS_DIR}/composer.json" ]; then
         composer update;
     fi;
@@ -530,12 +531,14 @@ mysqldump -u root -proot ${BVF_PROJECTNAME} > ${BVF_ROOT_DIR}/backup.sql;
 gzip -v  ${BVF_ROOT_DIR}/backup.sql ;
 
 echo "# DUMP CONFIG FILES";
-if [ -f "${BVF_HTDOCS_DIR}/wp-config.php" ]; then
-    cp "${BVF_HTDOCS_DIR}/wp-config.php" "${BVF_ROOT_DIR}/wp-config.php";
-fi;
-if [ -f "${BVF_HTDOCS_DIR}/app/etc/local.xml" ]; then
-    cp "${BVF_HTDOCS_DIR}/app/etc/local.xml" "${BVF_ROOT_DIR}/local.xml";
-fi;
+BVF_HTDOCS_FILES=(${BVF_HTDOCS_FILES[*]});
+for BVF_BACKUP_FILE in \${BVF_HTDOCS_FILES[*]}; do
+    if [ -f "${BVF_HTDOCS_DIR}/\${BVF_BACKUP_FILE}" ]; then
+        BVF_BACKUP_FILENAME=\$(basename \${BVF_BACKUP_FILE});
+        cp "${BVF_HTDOCS_DIR}/\${BVF_BACKUP_FILE}" "\${BVF_ROOT_DIR}/\${BVF_BACKUP_FILENAME}";
+    fi;
+done;
+
 EOF
 );
     echo "${BVF_BACKUP}" >> "${BVF_TOOLS_DIR}/backup.sh";
