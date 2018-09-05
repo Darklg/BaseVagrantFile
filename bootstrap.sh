@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.16.4
+# VagrantFile Bootstrap v 0.16.5
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.16.4';
+echo '## INSTALLING VagrantFile v 0.16.5';
 echo '###################################';
 
 # External config
@@ -44,7 +44,7 @@ fi
 
 # Internal config
 BVF_ROOT_DIR="/var/www/html";
-BVF_TOOLS_DIR="/home/ubuntu";
+BVF_TOOLS_DIR="/home/vagrant";
 BVF_HTDOCS_DIR="${BVF_ROOT_DIR}/htdocs";
 BVF_LOGS_DIR="${BVF_ROOT_DIR}/logs";
 BVF_CONTROL_FILE="/var/www/.basevagrantfile";
@@ -126,7 +126,7 @@ if [[ ${BVF_PROJECTSERVERTYPE} == 'apache' ]]; then
 else
     sudo apt-get install -y \
         nginx \
-        php${BVF_PROJECTPHPVERSION}-fpm;
+        php7.2-fpm;
 fi;
 sudo apt-get install -y \
     php${BVF_PROJECTPHPVERSION} \
@@ -286,14 +286,14 @@ server {
     index index.php index.html;
 
     location / {
-        try_files \$uri \$uri/ /index.php?\$args;
+        try_files $uri $uri/ /index.php?$args;
     }
 
-    location ~ \.php\$ {
-        try_files \$uri =404;
+    location ~ \.php$ {
+        try_files $uri =404;
         fastcgi_index index.php;
         fastcgi_pass unix:/run/php/php${BVF_PROJECTPHPVERSION}-fpm.sock;
-        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         include /etc/nginx/fastcgi_params;
     }
 
@@ -495,13 +495,16 @@ if [ ! -d "${BVF_HTDOCS_DIR}" ]; then
     echo '## CLONE PROJECT';
     cd ${BVF_ROOT_DIR};
     git clone ${BVF_PROJECTREPO} ${BVF_HTDOCS_DIR};
+    git config --global user.email "${BVF_PROJECTNAME}@${BVF_PROJECTNDD}";
+    git config --global user.name "${BVF_PROJECTNAME}";
+    cd ${BVF_HTDOCS_DIR};
     git submodule update --init --recursive;
 
     echo '## RESTORE CONFIG FILES';
     BVF_HTDOCS_FILES=(${BVF_HTDOCS_FILES[*]});
     for BVF_BACKUP_FILE in \${BVF_HTDOCS_FILES[*]}; do
-        if [ ! -f "${BVF_HTDOCS_DIR}/\${BVF_BACKUP_FILE}" ]; then
-            BVF_BACKUP_FILENAME=\$(basename \${BVF_BACKUP_FILE});
+        BVF_BACKUP_FILENAME=\$(basename \${BVF_BACKUP_FILE});
+        if [ -f "${BVF_ROOT_DIR}/\${BVF_BACKUP_FILENAME}" ] && [ ! -f "${BVF_HTDOCS_DIR}/\${BVF_BACKUP_FILE}" ]; then
             cp "${BVF_ROOT_DIR}/\${BVF_BACKUP_FILENAME}" "${BVF_HTDOCS_DIR}/\${BVF_BACKUP_FILE}";
         fi;
     done;
