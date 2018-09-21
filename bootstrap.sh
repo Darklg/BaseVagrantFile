@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.16.5
+# VagrantFile Bootstrap v 0.16.6
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.16.5';
+echo '## INSTALLING VagrantFile v 0.16.6';
 echo '###################################';
 
 # External config
@@ -126,7 +126,7 @@ if [[ ${BVF_PROJECTSERVERTYPE} == 'apache' ]]; then
 else
     sudo apt-get install -y \
         nginx \
-        php7.2-fpm;
+        php${BVF_PROJECTPHPVERSION}-fpm;
 fi;
 sudo apt-get install -y \
     php${BVF_PROJECTPHPVERSION} \
