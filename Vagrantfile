@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# VagrantFile Bootstrap v 0.16.6
+# VagrantFile Bootstrap v 0.16.7
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -83,6 +83,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     sudo service nginx restart
   fi
 SHELL
+
+  # Cache warming the home page
+  config.vm.provision "shell", run: "always" do |s|
+    s.inline = "wget -O/dev/null -q http://$1;";
+    s.args   = [ VAGRANTFILE_MYPROJECT_DOMAIN ]
+  end
 
   # Hostname
   config.ssh.forward_agent = true
