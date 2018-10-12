@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.16.7
+# VagrantFile Bootstrap v 0.16.8
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.16.7';
+echo '## INSTALLING VagrantFile v 0.16.8';
 echo '###################################';
 
 # External config
@@ -509,10 +509,10 @@ if [ ! -d "${BVF_HTDOCS_DIR}" ]; then
         fi;
     done;
 
-    echo '## COMPOSER UPDATE';
+    echo '## COMPOSER INSTALL';
     cd ${BVF_HTDOCS_DIR};
     if [ -f "${BVF_HTDOCS_DIR}/composer.json" ]; then
-        composer update;
+        composer install;
     fi;
 fi;
 EOF

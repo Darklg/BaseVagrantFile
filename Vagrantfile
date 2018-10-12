@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# VagrantFile Bootstrap v 0.16.7
+# VagrantFile Bootstrap v 0.16.8
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -86,9 +86,9 @@ SHELL
 
   # Cache warming the home page
   config.vm.provision "shell", run: "always" do |s|
-    s.inline = "wget -O/dev/null -q http://$1;";
-    s.args   = [ VAGRANTFILE_MYPROJECT_DOMAIN ]
-  end
+    s.inline = "wget -O/dev/null -q $1://$2;";
+    s.args   = [ ((VAGRANTFILE_MYPROJECT_HTTPS == '1') ? 'https' : 'http'), VAGRANTFILE_MYPROJECT_DOMAIN ]
+
 
   # Hostname
   config.ssh.forward_agent = true
