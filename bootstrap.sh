@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.16.8
+# VagrantFile Bootstrap v 0.17.0
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.16.8';
+echo '## INSTALLING VagrantFile v 0.17.0';
 echo '###################################';
 
 # External config
@@ -55,6 +55,7 @@ BVF_UPLOADMAX="32M";
 BVF_HTDOCS_FILES=(wp-config.php app/etc/local.xml app/etc/env.php auth.json);
 
 BVF_PHPINI_FILE="/etc/php/${BVF_PROJECTPHPVERSION}/apache2/php.ini";
+BVF_PHPINICLI_FILE="/etc/php/${BVF_PROJECTPHPVERSION}/cli/php.ini";
 if [[ "${BVF_PROJECTSERVERTYPE}" == 'nginx' ]]; then
     BVF_PHPINI_FILE="/etc/php/${BVF_PROJECTPHPVERSION}/fpm/php.ini";
 fi;
@@ -159,10 +160,15 @@ fi;
 # PHP
 BVF_PHPERROR_LOG=$(sed 's/\//\\\//g' <<< "${BVF_LOGS_DIR}/php-error.log");
 sed -i "s/;error_log = .*/error_log = ${BVF_PHPERROR_LOG}/" ${BVF_PHPINI_FILE}
+sed -i "s/;error_log = .*/error_log = ${BVF_PHPERROR_LOG}/" ${BVF_PHPINICLI_FILE}
 sed -i "s/error_reporting = .*/error_reporting = E_ALL/" ${BVF_PHPINI_FILE}
+sed -i "s/error_reporting = .*/error_reporting = E_ALL/" ${BVF_PHPINICLI_FILE}
 sed -i "s/display_errors = .*/display_errors = On/" ${BVF_PHPINI_FILE}
+sed -i "s/display_errors = .*/display_errors = On/" ${BVF_PHPINICLI_FILE}
 sed -i "s/upload_max_filesize = .*/upload_max_filesize = ${BVF_UPLOADMAX}/" ${BVF_PHPINI_FILE}
+sed -i "s/upload_max_filesize = .*/upload_max_filesize = ${BVF_UPLOADMAX}/" ${BVF_PHPINICLI_FILE}
 sed -i "s/post_max_size = .*/post_max_size = ${BVF_UPLOADMAX}/" ${BVF_PHPINI_FILE}
+sed -i "s/post_max_size = .*/post_max_size = ${BVF_UPLOADMAX}/" ${BVF_PHPINICLI_FILE}
 sudo phpenmod memcached
 
 # MySQL
@@ -207,7 +213,9 @@ if [ ! -f "${BVF_CONTROL_FILE}" ]; then
     sudo update-rc.d cron defaults
     # - enable
     echo "sendmail_from = mailcatcher@${BVF_PROJECTNDD}" | sudo tee --append ${BVF_PHPINI_FILE}
+    echo "sendmail_from = mailcatcher@${BVF_PROJECTNDD}" | sudo tee --append ${BVF_PHPINICLI_FILE}
     echo "sendmail_path = /usr/bin/env $(which catchmail) -f mailcatcher@${BVF_PROJECTNDD}" | sudo tee --append ${BVF_PHPINI_FILE}
+    echo "sendmail_path = /usr/bin/env $(which catchmail) -f mailcatcher@${BVF_PROJECTNDD}" | sudo tee --append ${BVF_PHPINICLI_FILE}
     # - start
     /usr/bin/env $(which mailcatcher) --ip=0.0.0.0
 fi;
