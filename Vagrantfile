@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# VagrantFile Bootstrap v 0.17.0
+# VagrantFile Bootstrap v 0.17.1
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -90,6 +90,7 @@ SHELL
   config.vm.provision "shell", run: "always" do |s|
     s.inline = "wget -O/dev/null -q $1://$2;";
     s.args   = [ ((VAGRANTFILE_MYPROJECT_HTTPS == '1') ? 'https' : 'http'), VAGRANTFILE_MYPROJECT_DOMAIN ]
+  end
 
 
   # Hostname
