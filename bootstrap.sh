@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.17.1
+# VagrantFile Bootstrap v 0.17.2
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.17.1';
+echo '## INSTALLING VagrantFile v 0.17.2';
 echo '###################################';
 
 # External config
@@ -147,6 +147,7 @@ sudo apt-get install -y \
     php${BVF_PROJECTPHPVERSION}-soap \
     php${BVF_PROJECTPHPVERSION}-xml \
     php${BVF_PROJECTPHPVERSION}-intl \
+    php-imagick
     php-memcached \
     redis-server \
     composer \
@@ -446,11 +447,17 @@ if [[ ${BVF_PROJECTHASMAGENTO} == '1' ]] || [[ ${BVF_PROJECTHASMAGENTO} == '2' ]
         wget https://files.magerun.net/n98-magerun.phar
         sudo chmod +x n98-magerun.phar
         sudo cp n98-magerun.phar /usr/local/bin/
+        if [ ! -f "${BVF_CONTROL_FILE}" ]; then
+            echo "alias magerun='php /usr/local/bin/n98-magerun.phar';" >> "${BVF_ALIASES_FILE}";
+        fi;
     fi;
     if [[ ${BVF_PROJECTHASMAGENTO} == '2' ]]; then
         wget https://files.magerun.net/n98-magerun2.phar
         sudo chmod +x n98-magerun2.phar
         sudo cp n98-magerun2.phar /usr/local/bin/
+        if [ ! -f "${BVF_CONTROL_FILE}" ]; then
+            echo "alias magerun='php /usr/local/bin/n98-magerun2.phar';" >> "${BVF_ALIASES_FILE}";
+        fi;
     fi;
 
 fi;
