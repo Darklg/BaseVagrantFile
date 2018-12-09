@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.17.2
+# VagrantFile Bootstrap v 0.17.3
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.17.2';
+echo '## INSTALLING VagrantFile v 0.17.3';
 echo '###################################';
 
 # External config
@@ -147,7 +147,7 @@ sudo apt-get install -y \
     php${BVF_PROJECTPHPVERSION}-soap \
     php${BVF_PROJECTPHPVERSION}-xml \
     php${BVF_PROJECTPHPVERSION}-intl \
-    php-imagick
+    php-imagick \
     php-memcached \
     redis-server \
     composer \
@@ -506,9 +506,10 @@ else
     # Installer for project
     BVF_INSTALLER=$(cat <<EOF
 #!/bin/bash
-if [ ! -d "${BVF_HTDOCS_DIR}" ]; then
+if [ ! -d "${BVF_HTDOCS_DIR}/.git" ]; then
     echo '## CLONE PROJECT';
     cd ${BVF_ROOT_DIR};
+    rm -rf ${BVF_HTDOCS_DIR};
     git clone ${BVF_PROJECTREPO} ${BVF_HTDOCS_DIR};
     git config --global user.email "${BVF_PROJECTNAME}@${BVF_PROJECTNDD}";
     git config --global user.name "${BVF_PROJECTNAME}";
