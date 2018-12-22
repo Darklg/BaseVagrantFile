@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.17.3
+# VagrantFile Bootstrap v 0.17.4
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.17.3';
+echo '## INSTALLING VagrantFile v 0.17.4';
 echo '###################################';
 
 # External config
@@ -565,6 +565,21 @@ EOF
 fi;
 
 sudo chmod 0755 "${BVF_ALIASES_FILE}";
+
+if [[ ${BVF_PROJECTHASMAGENTO} == '2' ]]; then
+    BVF_SWAP=$(cat <<EOF
+#!/bin/bash
+
+echo "## CREATE SWAP";
+sudo fallocate -l 1G /swapfile;
+sudo chmod 600 /swapfile;
+sudo mkswap /swapfile;
+sudo swapon /swapfile;
+EOF
+);
+    echo "${BVF_SWAP}" >> "${BVF_TOOLS_DIR}/swap.sh";
+    echo "/bin/bash ${BVF_TOOLS_DIR}/swap.sh" >> "${BVF_ALIASES_FILE}";
+fi;
 
 # Custom .inputrc
 BVF_INPUTRC=$(cat <<EOF
