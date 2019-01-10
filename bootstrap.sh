@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.17.4
+# VagrantFile Bootstrap v 0.17.5
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.17.4';
+echo '## INSTALLING VagrantFile v 0.17.5';
 echo '###################################';
 
 # External config
@@ -534,7 +534,6 @@ fi;
 EOF
 );
     if [ ! -f "${BVF_TOOLS_DIR}/installer.sh" ]; then
-        rm -rf "${BVF_HTDOCS_DIR}";
         echo "${BVF_INSTALLER}" >> "${BVF_TOOLS_DIR}/installer.sh";
         echo "/bin/bash ${BVF_TOOLS_DIR}/installer.sh" >> "${BVF_ALIASES_FILE}";
     fi;
