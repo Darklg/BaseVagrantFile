@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.17.5
+# VagrantFile Bootstrap v 0.17.6
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.17.5';
+echo '## INSTALLING VagrantFile v 0.17.6';
 echo '###################################';
 
 # External config
@@ -87,6 +87,11 @@ sudo apt-get install -y \
     sendmail \
     git \
     git-core;
+
+# Node
+sudo apt-get install -y \
+    nodejs \
+    npm;
 
 # Ruby
 sudo apt-get install -y \
@@ -493,6 +498,18 @@ if [ ! -f "${BVF_CONTROL_FILE}" ]; then
     # Common aliases
     echo "alias ..='cd ..';" >> "${BVF_ALIASES_FILE}";
     echo "function mkdircd () { mkdir -p \"\$@\" && cd \"\$@\"; }" >> "${BVF_ALIASES_FILE}";
+
+    # Custom prompt : PS1
+    BVF_PS1=$(cat <<EOF
+parse_git_branch() {
+  git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
+}
+export PS1="\[\e[0;36m\]\u@\h: \[\e[m\]\[\e[0;31m\]\w\[\e[m\]\[\033[00m\]\$(parse_git_branch) \n$ "
+EOF
+);
+echo "${BVF_PS1}" >> "${BVF_ALIASES_FILE}";
+
+
 fi;
 
 ## Project folder init
