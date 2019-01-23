@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.17.6
+# VagrantFile Bootstrap v 0.17.7
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.17.6';
+echo '## INSTALLING VagrantFile v 0.17.7';
 echo '###################################';
 
 # External config
@@ -49,6 +49,7 @@ BVF_HTDOCS_DIR="${BVF_ROOT_DIR}/htdocs";
 BVF_LOGS_DIR="${BVF_ROOT_DIR}/logs";
 BVF_CONTROL_FILE="/var/www/.basevagrantfile";
 BVF_ALIASES_FILE="${BVF_TOOLS_DIR}/.bash_aliases";
+BVF_PROFILE_FILE="${BVF_TOOLS_DIR}/.bash_profile";
 BVF_INPUTRC_FILE="${BVF_TOOLS_DIR}/.inputrc";
 BVF_UPLOADMAX="32M";
 
@@ -433,6 +434,21 @@ if [ ! -f "${BVF_ALIASES_FILE}" ]; then
     touch "${BVF_ALIASES_FILE}";
 fi;
 
+# Profile
+if [ ! -f "${BVF_PROFILE_FILE}" ]; then
+    touch "${BVF_PROFILE_FILE}";
+    # Init file
+    BVF_PROFILE_FILE__CONTENT=$(cat <<EOF
+#!/bin/bash
+if [ -f ~/.bashrc ]; then
+   source ~/.bashrc
+fi
+cd ${BVF_HTDOCS_DIR} >& /dev/null;
+EOF
+);
+echo "${BVF_PROFILE_FILE__CONTENT}" >> "${BVF_PROFILE_FILE}";
+fi;
+
 # Inte Starter
 cd "${BVF_TOOLS_DIR}" && git clone --depth 1 https://github.com/Darklg/InteStarter.git;
 if [ ! -f "${BVF_CONTROL_FILE}" ]; then
@@ -441,27 +457,37 @@ fi;
 
 
 if [[ ${BVF_PROJECTHASMAGENTO} == '1' ]] || [[ ${BVF_PROJECTHASMAGENTO} == '2' ]]; then
-    # Magetools
-    cd "${BVF_TOOLS_DIR}" && git clone --depth 1 https://github.com/Darklg/InteGentoMageTools.git;
-    if [ ! -f "${BVF_CONTROL_FILE}" ]; then
-        echo "alias magetools='. ${BVF_TOOLS_DIR}/InteGentoMageTools/magetools.sh';" >> "${BVF_ALIASES_FILE}";
-    fi;
 
-    # Magerun
+
     if [[ ${BVF_PROJECTHASMAGENTO} == '1' ]]; then
+        # Magerun
         wget https://files.magerun.net/n98-magerun.phar
         sudo chmod +x n98-magerun.phar
         sudo cp n98-magerun.phar /usr/local/bin/
         if [ ! -f "${BVF_CONTROL_FILE}" ]; then
             echo "alias magerun='php /usr/local/bin/n98-magerun.phar';" >> "${BVF_ALIASES_FILE}";
         fi;
+
+        # Magetools
+        cd "${BVF_TOOLS_DIR}" && git clone --depth 1 https://github.com/Darklg/InteGentoMageTools.git;
+        if [ ! -f "${BVF_CONTROL_FILE}" ]; then
+            echo "alias magetools='. ${BVF_TOOLS_DIR}/InteGentoMageTools/magetools.sh';" >> "${BVF_ALIASES_FILE}";
+        fi;
     fi;
+
     if [[ ${BVF_PROJECTHASMAGENTO} == '2' ]]; then
+        # Magerun
         wget https://files.magerun.net/n98-magerun2.phar
         sudo chmod +x n98-magerun2.phar
         sudo cp n98-magerun2.phar /usr/local/bin/
         if [ ! -f "${BVF_CONTROL_FILE}" ]; then
             echo "alias magerun='php /usr/local/bin/n98-magerun2.phar';" >> "${BVF_ALIASES_FILE}";
+        fi;
+
+        # Magetools
+        cd "${BVF_TOOLS_DIR}" && git clone --depth 1 https://github.com/integento/InteGentoMageTools2.git;
+        if [ ! -f "${BVF_CONTROL_FILE}" ]; then
+            echo "alias magetools='. ${BVF_TOOLS_DIR}/InteGentoMageTools2/magetools.sh';" >> "${BVF_ALIASES_FILE}";
         fi;
     fi;
 
@@ -491,8 +517,6 @@ fi;
 
 ## Common aliases
 if [ ! -f "${BVF_CONTROL_FILE}" ]; then
-    # Default folder
-    echo "cd ${BVF_HTDOCS_DIR} >& /dev/null" >> "${BVF_ALIASES_FILE}";
     # Aliases
     echo "alias ht='cd ${BVF_HTDOCS_DIR}';" >> "${BVF_ALIASES_FILE}";
     # Common aliases
@@ -507,7 +531,7 @@ parse_git_branch() {
 export PS1="\[\e[0;36m\]\u@\h: \[\e[m\]\[\e[0;31m\]\w\[\e[m\]\[\033[00m\]\$(parse_git_branch) \n$ "
 EOF
 );
-echo "${BVF_PS1}" >> "${BVF_ALIASES_FILE}";
+echo "${BVF_PS1}" >> "${BVF_PROFILE_FILE}";
 
 
 fi;
@@ -552,7 +576,7 @@ EOF
 );
     if [ ! -f "${BVF_TOOLS_DIR}/installer.sh" ]; then
         echo "${BVF_INSTALLER}" >> "${BVF_TOOLS_DIR}/installer.sh";
-        echo "/bin/bash ${BVF_TOOLS_DIR}/installer.sh" >> "${BVF_ALIASES_FILE}";
+        echo "/bin/bash ${BVF_TOOLS_DIR}/installer.sh" >> "${BVF_PROFILE_FILE}";
     fi;
 fi;
 
@@ -581,20 +605,22 @@ EOF
 fi;
 
 sudo chmod 0755 "${BVF_ALIASES_FILE}";
+sudo chmod 0755 "${BVF_PROFILE_FILE}";
 
 if [[ ${BVF_PROJECTHASMAGENTO} == '2' ]]; then
     BVF_SWAP=$(cat <<EOF
 #!/bin/bash
-
-echo "## CREATE SWAP";
-sudo fallocate -l 1G /swapfile;
-sudo chmod 600 /swapfile;
-sudo mkswap /swapfile;
-sudo swapon /swapfile;
+if [ ! -f /swapfile ]; then
+    echo "## CREATE SWAP";
+    sudo fallocate -l 1G /swapfile;
+    sudo chmod 600 /swapfile;
+    sudo mkswap /swapfile;
+    sudo swapon /swapfile;
+fi;
 EOF
 );
     echo "${BVF_SWAP}" >> "${BVF_TOOLS_DIR}/swap.sh";
-    echo "/bin/bash ${BVF_TOOLS_DIR}/swap.sh" >> "${BVF_ALIASES_FILE}";
+    echo "/bin/bash ${BVF_TOOLS_DIR}/swap.sh" >> "${BVF_PROFILE_FILE}";
 fi;
 
 # Custom .inputrc
