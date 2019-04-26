@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# VagrantFile Bootstrap v 0.17.7
+# VagrantFile Bootstrap v 0.17.8
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -39,7 +39,7 @@ VAGRANTFILE_ARGS = [
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
-  required_plugins = %w( vagrant-hostmanager vagrant-disksize )
+  required_plugins = %w( vagrant-hostmanager vagrant-disksize vagrant-cachier vagrant-vbguest )
   _retry = false
   required_plugins.each do |plugin|
     unless Vagrant.has_plugin? plugin
@@ -72,6 +72,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # Share an additional folder to the guest VM. The first argument is the path on the host to the actual folder.
   # The second argument is the path on the guest to mount the folder.
   config.vm.synced_folder "./", "/var/www/html", type: "nfs", :mount_options => ['rw', 'vers=3', 'tcp'], :linux__nfs_options => ['async']
+
+  # Cache packages
+  if Vagrant.has_plugin?("vagrant-cachier")
+    config.cache.scope = :box
+    config.cache.synced_folder_opts = {
+      type: :nfs,
+      mount_options: ['rw', 'vers=3', 'tcp', 'nolock']
+    }
+  end
 
   # Define the bootstrap file: A (shell) script that runs after first setup of your box (= provisioning)
   config.vm.provision :shell, path: "https://raw.githubusercontent.com/Darklg/BaseVagrantFile/master/bootstrap.sh", :args => VAGRANTFILE_ARGS
