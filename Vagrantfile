@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# VagrantFile Bootstrap v 0.17.8
+# VagrantFile Bootstrap v 0.17.9
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -80,6 +80,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       type: :nfs,
       mount_options: ['rw', 'vers=3', 'tcp', 'nolock']
     }
+  end
+
+  # VB Guest fixes
+  if Vagrant.has_plugin?("vagrant-vbguest")
+      config.vbguest.auto_update = false
+      config.vbguest.installer_arguments = ['--nox11', '-- --do']
   end
 
   # Define the bootstrap file: A (shell) script that runs after first setup of your box (= provisioning)
