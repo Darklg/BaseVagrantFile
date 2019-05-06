@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.17.9
+# VagrantFile Bootstrap v 0.17.10
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.17.9';
+echo '## INSTALLING VagrantFile v 0.17.10';
 echo '###################################';
 
 # External config
@@ -321,7 +321,7 @@ EOF
 if [[ ${BVF_PROJECTHASMAGENTO} == '2' ]]; then
     BVF_VHOST=$(cat <<EOF
 upstream fastcgi_backend {
-    server unix:/var/run/php/php7.0-fpm.sock;
+    server unix:/var/run/php/php${BVF_PROJECTPHPVERSION}-fpm.sock;
 }
 
 server {
@@ -607,8 +607,7 @@ fi;
 sudo chmod 0755 "${BVF_ALIASES_FILE}";
 sudo chmod 0755 "${BVF_PROFILE_FILE}";
 
-if [[ ${BVF_PROJECTHASMAGENTO} == '2' ]]; then
-    BVF_SWAP=$(cat <<EOF
+BVF_SWAP=$(cat <<EOF
 #!/bin/bash
 if [ ! -f /swapfile ]; then
     echo "## CREATE SWAP";
@@ -619,7 +618,9 @@ if [ ! -f /swapfile ]; then
 fi;
 EOF
 );
-    echo "${BVF_SWAP}" >> "${BVF_TOOLS_DIR}/swap.sh";
+echo "${BVF_SWAP}" >> "${BVF_TOOLS_DIR}/swap.sh";
+
+if [[ ${BVF_PROJECTHASMAGENTO} == '2' ]]; then
     echo "/bin/bash ${BVF_TOOLS_DIR}/swap.sh" >> "${BVF_PROFILE_FILE}";
 fi;
 
