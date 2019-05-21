@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.17.10
+# VagrantFile Bootstrap v 0.17.11
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.17.10';
+echo '## INSTALLING VagrantFile v 0.17.11';
 echo '###################################';
 
 # External config
@@ -156,7 +156,6 @@ sudo apt-get install -y \
     php-imagick \
     php-memcached \
     redis-server \
-    composer \
     php-redis;
 
 # Apache
@@ -432,6 +431,16 @@ fi;
 # Aliases
 if [ ! -f "${BVF_ALIASES_FILE}" ]; then
     touch "${BVF_ALIASES_FILE}";
+fi;
+
+# Global composer
+if [ ! -f "${BVF_CONTROL_FILE}" ]; then
+    cd "${BVF_TOOLS_DIR}";
+    php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+    php -r "if (hash_file('sha384', 'composer-setup.php') === '48e3236262b34d30969dca3c37281b3b4bbe3221bda826ac6a9a62d6444cdb0dcd0615698a5cbe587c3f0fe57a54d8f5') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+    php composer-setup.php
+    php -r "unlink('composer-setup.php');"
+    echo "alias composer='php ${BVF_TOOLS_DIR}/composer.phar';" >> "${BVF_ALIASES_FILE}";
 fi;
 
 # Profile
