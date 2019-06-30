@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.17.11
+# VagrantFile Bootstrap v 0.17.12
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.17.11';
+echo '## INSTALLING VagrantFile v 0.17.12';
 echo '###################################';
 
 # External config
@@ -514,6 +514,12 @@ if [[ ${BVF_PROJECTHASWORDPRESS} == '1' ]]; then
     cd "${BVF_TOOLS_DIR}" && git clone --depth 1 https://github.com/WordPressUtilities/WPUInstaller.git;
     if [ ! -f "${BVF_CONTROL_FILE}" ]; then
         echo "alias wpuinstaller='. ${BVF_TOOLS_DIR}/WPUInstaller/start.sh';" >> "${BVF_ALIASES_FILE}";
+    fi;
+
+    # WPU Tools
+    cd "${BVF_TOOLS_DIR}" && git clone --depth 1 https://github.com/WordPressUtilities/wputools.git;
+    if [ ! -f "${BVF_CONTROL_FILE}" ]; then
+        echo "alias wputools='. ${BVF_TOOLS_DIR}/wputools/wputools.sh';" >> "${BVF_ALIASES_FILE}";
     fi;
 
     # WPU Entity Creator
