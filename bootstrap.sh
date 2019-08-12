@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.17.13
+# VagrantFile Bootstrap v 0.17.14
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.17.13';
+echo '## INSTALLING VagrantFile v 0.17.14';
 echo '###################################';
 
 # External config
@@ -153,7 +153,7 @@ sudo apt-get install -y \
     php${BVF_PROJECTPHPVERSION}-soap \
     php${BVF_PROJECTPHPVERSION}-xml \
     php${BVF_PROJECTPHPVERSION}-intl \
-    php-imagick \
+    php${BVF_PROJECTPHPVERSION}-imagick \
     php-memcached \
     redis-server \
     php-redis;
@@ -611,7 +611,7 @@ BVF_HTDOCS_FILES=(${BVF_HTDOCS_FILES[*]});
 for BVF_BACKUP_FILE in \${BVF_HTDOCS_FILES[*]}; do
     if [ -f "${BVF_HTDOCS_DIR}/\${BVF_BACKUP_FILE}" ]; then
         BVF_BACKUP_FILENAME=\$(basename \${BVF_BACKUP_FILE});
-        cp "${BVF_HTDOCS_DIR}/\${BVF_BACKUP_FILE}" "\${BVF_ROOT_DIR}/\${BVF_BACKUP_FILENAME}";
+        cp "${BVF_HTDOCS_DIR}/\${BVF_BACKUP_FILE}" "${BVF_ROOT_DIR}/\${BVF_BACKUP_FILENAME}";
     fi;
 done;
 
