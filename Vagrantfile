@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# VagrantFile Bootstrap v 0.17.14
+# VagrantFile Bootstrap v 0.18.0
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
@@ -93,23 +93,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # OR Local version for debug purposes
   # config.vm.provision :shell, path: "bootstrap.sh", :args => VAGRANTFILE_ARGS
 
-  # Restart APACHE after mounting
-  if VAGRANTFILE_MYPROJECT_SERVER_TYPE == "apache"
-    config.vm.provision "shell", run: "always" do |s|
-      s.inline = "sudo service apache2 restart;";
-    end
-  end
-
-  # Restart NGINX after mounting
-  if VAGRANTFILE_MYPROJECT_SERVER_TYPE == "nginx"
-    config.vm.provision "shell", run: "always" do |s|
-      s.inline = "sudo service nginx restart;";
-    end
+  # Restart server after mounting
+  config.vm.provision "shell", run: "always" do |s|
+    s.inline = "sudo service $1 restart;";
+    s.args = [ ((VAGRANTFILE_MYPROJECT_SERVER_TYPE == 'apache') ? 'apache2' : 'nginx') ];
   end
 
   # Cache warming the home page
   config.vm.provision "shell", run: "always" do |s|
-    s.inline = "wget -O/dev/null -q $1://$2;";
+    s.inline = "wget --no-check-certificate -O/dev/null -q $1://$2;";
     s.args   = [ ((VAGRANTFILE_MYPROJECT_HTTPS == '1') ? 'https' : 'http'), VAGRANTFILE_MYPROJECT_DOMAIN ]
   end
 
