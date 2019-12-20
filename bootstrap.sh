@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# VagrantFile Bootstrap v 0.18.0
+# VagrantFile Bootstrap v 0.18.1
 #
 # @author      Darklg <darklg.blog@gmail.com>
 # @copyright   Copyright (c) 2017 Darklg
 # @license     MIT
 
 echo '###################################';
-echo '## INSTALLING VagrantFile v 0.18.0';
+echo '## INSTALLING VagrantFile v 0.18.1';
 echo '###################################';
 
 # External config
@@ -146,17 +146,23 @@ sudo apt-get install -y \
     php${BVF_PROJECTPHPVERSION}-fpm \
     php${BVF_PROJECTPHPVERSION}-curl \
     php${BVF_PROJECTPHPVERSION}-gd \
-    php${BVF_PROJECTPHPVERSION}-mcrypt \
     php${BVF_PROJECTPHPVERSION}-mbstring \
     php${BVF_PROJECTPHPVERSION}-bcmath \
     php${BVF_PROJECTPHPVERSION}-zip \
     php${BVF_PROJECTPHPVERSION}-soap \
     php${BVF_PROJECTPHPVERSION}-xml \
     php${BVF_PROJECTPHPVERSION}-intl \
-    php${BVF_PROJECTPHPVERSION}-imagick \
     php-memcached \
     redis-server \
     php-redis;
+
+# Special extensions
+sudo apt-get install -y \
+    php-mcrypt \
+    php-imagick;
+
+# Autostart redis
+sudo systemctl enable redis-server;
 
 # Apache
 if [[ ${BVF_PROJECTSERVERTYPE} == 'apache' ]]; then
@@ -437,7 +443,6 @@ fi;
 if [ ! -f "${BVF_CONTROL_FILE}" ]; then
     cd "${BVF_TOOLS_DIR}";
     php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-    php -r "if (hash_file('sha384', 'composer-setup.php') === '48e3236262b34d30969dca3c37281b3b4bbe3221bda826ac6a9a62d6444cdb0dcd0615698a5cbe587c3f0fe57a54d8f5') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
     php composer-setup.php
     php -r "unlink('composer-setup.php');"
     echo "alias composer='php ${BVF_TOOLS_DIR}/composer.phar';" >> "${BVF_ALIASES_FILE}";
